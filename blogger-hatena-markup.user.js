@@ -1,12 +1,12 @@
 // ==UserScript==
-// @name           Blogger Hatena Syntax
-// @namespace      http://d.hatena.ne.jp/edvakf/
-// @description    Hatena syntax and code highlight for blogger
-// @include        http://www.blogger.com/post-create.g*
-// @include        http://www.blogger.com/post-edit.g*
+// @name           Blogger Hatena Markup
+// @namespace      https://github.com/harai/
+// @description    Hatena Markup for Blogger
+// @include        http://www.blogger.com/blogger.g*
 // ==/UserScript==
 //
-//  Copyright (C) 2010 edvakf
+//  Copyright (C) 2013 Akihiro HARAI
+//  Originally created by edvakf
 //
 //   The JavaScript code in this page is free software: you can
 //   redistribute it and/or modify it under the terms of the GNU
@@ -33,28 +33,58 @@
 //   JavaScript (javascript), Perl (perl), PHP (php), Python (python),
 //   Ruby (ruby), Scala (scala), Shell Script (sh), SQL (sql), XML (xml)
 
-
 // main part
-setTimeout(function() {
-  if (window.top !== window.self) return;
+setTimeout(bloggerHatenaMarkup, 10);
 
-  var box = document.getElementById("body");
-  var ta = document.getElementById("textarea");
+function bloggerHatenaMarkup() {
+  if (window.top !== window.self) {
+    return;
+  }
+  if (location.hash.substr(0, "#editor/".length) !== "#editor/") {
+    return;
+  }
+
+  // var observer = new MutationObserver(function() {
+  var observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      console.log(mutation.type);
+    });
+
+    if (document.getElementById("postingHtmlBox")) {
+      observer.disconnect();
+      setTimeout(bloggerHatenaMarkupMain, 10);
+    }
+  });
+
+  // pass in the target node, as well as the observer options
+  observer.observe(document.body, { childList: true, subtree: true });
+}
+
+function bloggerHatenaMarkupMain() {
+  var BOX_SIZING = "-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;";
+  // var titleField = document.getElementsByClassName("titleField")[0];
+  var ta = document.getElementById("postingHtmlBox");
+  ta.style.height = "50%";
+  ta.style += BOX_SIZING;
+  var box = ta.parentElement;
   var editor = document.createElement("textarea");
   editor.setAttribute('style', [
+    'resize:none;',
     'display:block;',
     'float:left;',
-    'width:45%;',
+    'height:50%;',
+    'width:50%;',
     'padding:0 0 0 5px;',
-    'minimum-height:300px;'
+    BOX_SIZING
   ].join(''));
   var preview = document.createElement("div");
   preview.setAttribute('style', [
     'float:right;',
     'width:50%;',
+    'height:50%;',
     'border:solid black 1px;',
     'padding:5px;',
-    'minimum-height:300px;'
+    BOX_SIZING
   ].join(''));
   box.appendChild(editor);
   box.appendChild(preview);
@@ -69,13 +99,11 @@ setTimeout(function() {
         function($0,$1) {return String.times('-', +$1);}
       );
       seePreview();
-      resize(editor);
     }, 10);
   }
 
   var timer;
   editor.addEventListener('input', function() {
-    resize(editor);
     timer = clearTimeout(timer);
     timer = setTimeout(seePreview, 500);
   }, false);
@@ -95,34 +123,19 @@ setTimeout(function() {
     setTextArea();
     fetchTitles();
   }
+
   function setTextArea() {
-    var clone = preview.cloneNode(true);
-    var h3 = clone.firstChild.firstElementChild;
-    if (h3 && /h3/i.test(h3.nodeName)) {
-      document.getElementById('f-title').value = h3.textContent.replace(sectionanchor, '');
-      h3.parentNode.removeChild(h3);
-    }
-    ta.value = clone.innerHTML + "\n<!--HatenaKihou\n" + 
+    // var clone = preview.cloneNode(true);
+    // var h3 = clone.firstChild.firstElementChild;
+    // if (h3 && /h3/i.test(h3.nodeName)) {
+      // titleField.value = h3.textContent.replace(sectionanchor, '');
+      // h3.parentNode.removeChild(h3);
+    // }
+    ta.value = preview.innerHTML + "\n<!--HatenaKihou\n" + 
       editor.value.replace(/-{2,}/g, 
         function($0) {return '{{'+$0.length+' hyphens}}'}
       ) + "\nHatenaKihou-->";
   }
-  function resize(el) {
-    var es = el.style;
-    var sh = el.scrollHeight;
-    var paddingTopAndBottom = 0 + 0;
-    if (this.opera) {
-      // http://orera.g.hatena.ne.jp/misttrap/20090825/p1
-      es.minHeight = sh + 'px';
-      var diff = sh + paddingTopAndBottom - el.clientHeight
-      if (diff > 0) es.minHeight = sh + diff + 'px';
-    } else {
-      // http://d.hatena.ne.jp/javascripter/20090311/1236779096
-      es.height = '0px';
-      es.height = sh - paddingTopAndBottom + 'px';
-    }
-  }
-
 
   var script = document.createElement('script');
   script.textContent = [ // run in page's context. works for Greasemonkey & Chrome
@@ -197,8 +210,7 @@ setTimeout(function() {
       }
     );
   }
-}, 10);
-
+}
 
 /*
  * http://tech.nitoyon.com/javascript/application/texthatena/text-hatena0-2.js
