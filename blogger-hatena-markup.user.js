@@ -33,190 +33,10 @@
 //   JavaScript (javascript), Perl (perl), PHP (php), Python (python),
 //   Ruby (ruby), Scala (scala), Shell Script (sh), SQL (sql), XML (xml)
 
-// main part
-setTimeout(bloggerHatenaMarkup, 10);
-
-function bloggerHatenaMarkup() {
-  if (window.top !== window.self) {
-    return;
-  }
-  if (location.hash.substr(0, "#editor/".length) !== "#editor/") {
-    return;
-  }
-
-  // var observer = new MutationObserver(function() {
-  var observer = new MutationObserver(function(mutations) {
-    mutations.forEach(function(mutation) {
-      console.log(mutation.type);
-    });
-
-    if (document.getElementById("postingHtmlBox")) {
-      observer.disconnect();
-      setTimeout(bloggerHatenaMarkupMain, 10);
-    }
-  });
-
-  // pass in the target node, as well as the observer options
-  observer.observe(document.body, { childList: true, subtree: true });
-}
-
-function bloggerHatenaMarkupMain() {
-  var BOX_SIZING = "-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;";
-  // var titleField = document.getElementsByClassName("titleField")[0];
-  var ta = document.getElementById("postingHtmlBox");
-  ta.style.height = "50%";
-  ta.style += BOX_SIZING;
-  var box = ta.parentElement;
-  var editor = document.createElement("textarea");
-  editor.setAttribute('style', [
-    'resize:none;',
-    'display:block;',
-    'float:left;',
-    'height:50%;',
-    'width:50%;',
-    'padding:0 0 0 5px;',
-    BOX_SIZING
-  ].join(''));
-  var preview = document.createElement("div");
-  preview.setAttribute('style', [
-    'float:right;',
-    'width:50%;',
-    'height:50%;',
-    'border:solid black 1px;',
-    'padding:5px;',
-    BOX_SIZING
-  ].join(''));
-  box.appendChild(editor);
-  box.appendChild(preview);
-
-  var sectionanchor = '\u25a0';
-  var hatena = new Hatena({sectionanchor: sectionanchor});
-  var m;
-  if (m = ta.value.match(/\n<!--HatenaKihou\r?\n([\s\S]*)\nHatenaKihou-->/)) {
-    setTimeout(function() { // to let variables below be defined
-      editor.value = m[1].replace(
-        /\{\{(\d+) hyphens\}\}/g,
-        function($0,$1) {return String.times('-', +$1);}
-      );
-      seePreview();
-    }, 10);
-  }
-
-  var timer;
-  editor.addEventListener('input', function() {
-    timer = clearTimeout(timer);
-    timer = setTimeout(seePreview, 500);
-  }, false);
-
-  function seePreview() {
-    hatena.parse(editor.value);
-    preview.innerHTML = hatena.html();
-    Array.prototype.forEach.call(
-      preview.getElementsByTagName("pre"), 
-      function(pre) {
-        if ((m = pre.className.match(/sh_(\S*)/)) && sh_languages[m[1]]) {
-          sh_highlightElement(pre, sh_languages[m[1]]);
-        }
-      }
-    );
-    replaceTitles();
-    setTextArea();
-    fetchTitles();
-  }
-
-  function setTextArea() {
-    // var clone = preview.cloneNode(true);
-    // var h3 = clone.firstChild.firstElementChild;
-    // if (h3 && /h3/i.test(h3.nodeName)) {
-      // titleField.value = h3.textContent.replace(sectionanchor, '');
-      // h3.parentNode.removeChild(h3);
-    // }
-    ta.value = preview.innerHTML + "\n<!--HatenaKihou\n" + 
-      editor.value.replace(/-{2,}/g, 
-        function($0) {return '{{'+$0.length+' hyphens}}'}
-      ) + "\nHatenaKihou-->";
-  }
-
-  var script = document.createElement('script');
-  script.textContent = [ // run in page's context. works for Greasemonkey & Chrome
-    ,"function fireMyEvent(o) {"
-      ,"if (o.error) return;"
-      ,"var url = o.query.diagnostics.url;"
-      ,"url = url.content || url[url.length - 1].content;"
-      ,"var title = o.query.results;"
-      ,"if (window.opera) {"
-        ,"var ev = document.createEvent('Event');"
-        ,"ev.initEvent('TitleReady', true, false);"
-        ,"ev.url = url;"
-        ,"ev.title = title;"
-      ,"} else {"
-        ,"var ev = document.createEvent('MessageEvent');"
-        ,"ev.initMessageEvent('TitleReady', true, false," // type, canBubble, cancelable
-          ,"JSON.stringify({url: url, title: title})," // data
-          ,"location.protocol + '//' + location.host," // origin
-          ,"''," // lastEventId
-          ,"window" // source
-        ,");"
-      ,"}"
-      ,"document.dispatchEvent(ev);"
-    ,"}"
-  ].join('\n');
-  document.body.appendChild(script);
-
-  var URL2TITLE = {};
-  document.addEventListener('TitleReady', function(ev) {
-    var data = ev.data ? JSON.parse(ev.data) : ev;
-    URL2TITLE[data.url] = data.title || null;
-    replaceTitles();
-    setTextArea();
-  }, false);
-  function replaceTitles() {
-    Array.prototype.forEach.call(
-      preview.getElementsByTagName('a'), 
-      function(a) {
-        if (a.textContent === '{{title}}') {
-          var title = URL2TITLE[a.href];
-          if (title === void 0) {
-            // title must be fetched
-          } else if (title === null) {
-            a.textContent = a.href;
-          } else if (title === '') {
-            // JSONP not loaded yet
-          } else {
-            a.textContent = title;
-            var grandpa = a.parentNode.parentNode;
-            if (/blockquote/i.test(grandpa.tagName) && 
-              grandpa.getAttribute('title') === '{{title}}') 
-              grandpa.setAttribute('title', title);
-          }
-        }
-      }
-    );
-  }
-  function fetchTitles() {
-    Array.prototype.forEach.call(
-      preview.getElementsByTagName('a'), 
-      function(a) {
-        var url = a.href;
-        if (a.textContent === '{{title}}' && URL2TITLE[url] === void 0) {
-          URL2TITLE[url] = '';
-          var api = "http://query.yahooapis.com/v1/public/yql" +
-            "?format=json&callback=fireMyEvent&q=select%20*%20from%20html%20where%20url%3d'" +
-            encodeURIComponent(url) + "'%20and%20xpath%3d'%2f%2ftitle%2ftext()'";
-          var script = document.createElement('script');
-          script.src = api;
-          document.body.appendChild(script);
-        }
-      }
-    );
-  }
-}
-
 /*
  * http://tech.nitoyon.com/javascript/application/texthatena/text-hatena0-2.js
  * modified by edvakf
  */
-
 
 // from prototype.js
 Object.extend = function(destination, source) {
@@ -5589,3 +5409,278 @@ sh_languages['scala'] = [
     ]
   ]
 ];
+
+var bloggerHatenaMarkup = function () {
+  console.debug("user script started");
+  
+  var isShown = function(el) {
+    return el.offsetWidth !== 0;
+  };
+  
+  var hatena = new Hatena({sectionanchor: '\u25a0'});
+  var textarea = null;
+  var hatenaEditor = null;
+  var hatenaPreview = null;
+  
+  var postingHtmlBoxHiddenState = function() {
+    console.debug(">>> on postingHtmlBoxHiddenState");
+  
+    var observer = new MutationObserver(function() {
+      console.debug(">>> on postingHtmlBoxHiddenState mutation found");
+      if (!isShown(textarea)) {
+        return;
+      }
+      observer.disconnect();
+      
+      postingHtmlBoxShownState();
+    });
+    observer.observe(document.body, { attributes: true, subtree: true });
+  };
+  
+  var postingHtmlBoxShownState = function() {
+    console.debug(">>> on postingHtmlBoxShownState");
+  
+    var waitLoop = function() {
+      if (!textarea.value.match(/^\s*$/)) {
+        setTimeout(textareaToHatenaEditor, 50);
+      } else {
+        setTimeout(waitLoop, 100);
+      }
+    };
+    waitLoop();
+  
+    var observer = new MutationObserver(function() {
+      console.debug(">>> on postingHtmlBoxHiddenState mutation found");
+      if (isShown(textarea)) {
+        return;
+      }
+      observer.disconnect();
+      
+      postingHtmlBoxHiddenState();
+    });
+    observer.observe(document.body, { attributes: true, subtree: true });
+  };
+
+  var hatenaEditorToTextareaSynchronizer = (function() {
+    var timer = null;
+    var isOn = false;
+
+    return {
+      init: function() {
+        hatenaEditor.addEventListener('input', function() {
+          if (isOn) {
+            clearTimeout(timer);
+            timer = setTimeout(seePreview, 500);
+          }
+        }, false);
+      },
+
+      start: function() {
+        if (!isOn) {
+          isOn = true;
+        }
+      },
+
+      stop: function() {
+        if (isOn) {
+          isOn = false;
+          clearTimeout(timer);
+        }
+      }
+    };
+  })();
+
+  var initHatena = function() {  
+    var addHatenaElements = function() {
+      var BOX_SIZING = "-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;";
+      textarea.style.height = "50%";
+      textarea.style += BOX_SIZING;
+      var box = textarea.parentElement;
+      hatenaEditor = document.createElement("textarea");
+      hatenaEditor.setAttribute("id", "hatenaEditor");
+      hatenaEditor.setAttribute('style', [
+        'resize:none;',
+        'display:block;',
+        'float:left;',
+        'height:50%;',
+        'width:50%;',
+        'padding:0 0 0 5px;',
+        BOX_SIZING
+      ].join(''));
+      hatenaPreview = document.createElement("div");
+      hatenaPreview.setAttribute('id', "hatenaPreview");
+      hatenaPreview.setAttribute('style', [
+        'float:right;',
+        'width:50%;',
+        'height:50%;',
+        'border:solid black 1px;',
+        'padding:5px;',
+        BOX_SIZING
+      ].join(''));
+      box.appendChild(hatenaEditor);
+      box.appendChild(hatenaPreview);
+    };
+  
+    var addStyles = function() {
+      var style = document.createElement("style");
+      style.textContent = [
+        ,"#hatenaPreview h4 {"
+          ,"font-weight: bold;"
+          ,"font-size: 15px;"
+        ,"}" // TODO complete this
+      ].join('\n');
+      document.head.appendChild(style);
+    };
+  
+    addStyles();
+    addHatenaElements();
+    hatenaEditorToTextareaSynchronizer.init();
+    hatenaEditorToTextareaSynchronizer.start();
+  };
+  
+  var initState = function() {
+    console.debug(">>> on initState");
+  
+    var observer = new MutationObserver(function() {
+      console.debug(">>> on initState mutation found");
+      if (!(textarea = document.getElementById("postingHtmlBox"))) {
+        return;
+      }
+      observer.disconnect();
+      
+      initHatena();
+      
+      if (isShown(textarea)) {
+        postingHtmlBoxShownState();
+      } else {
+        postingHtmlBoxHiddenState();
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  };
+  
+  var extractHatenaOrNull = function(str) {
+    var m = str.match(/\n<!--HatenaKihou\r?\n([\s\S]*)\nHatenaKihou-->/);
+    if (m === null) {
+      return null;
+    }
+    return m[1].replace(/\{\{(\d+) hyphens\}\}/g, function($0,$1) { return String.times('-', +$1); });
+  };
+  
+  var textareaToHatenaEditor = function() {
+    var h = extractHatenaOrNull(textarea.value);
+    if (h === null) {
+      hatenaEditorToTextareaSynchronizer.stop();
+      hatenaEditor.value = "";
+      hatenaEditorToTextareaSynchronizer.start();
+    } else {
+      hatenaEditor.value = h;
+      seePreview();
+    }
+  };
+  
+  initState();
+
+  function seePreview() {
+    hatena.parse(hatenaEditor.value);
+    hatenaPreview.innerHTML = hatena.html();
+    Array.prototype.forEach.call(
+      hatenaPreview.getElementsByTagName("pre"), 
+      function(pre) {
+        if ((m = pre.className.match(/sh_(\S*)/)) && sh_languages[m[1]]) {
+          sh_highlightElement(pre, sh_languages[m[1]]);
+        }
+      }
+    );
+    replaceTitles();
+    setTextArea();
+    fetchTitles();
+  }
+
+  function setTextArea() {
+    textarea.value = hatenaPreview.innerHTML + "\n<!--HatenaKihou\n" + 
+      hatenaEditor.value.replace(/-{2,}/g, 
+        function($0) {return '{{'+$0.length+' hyphens}}'}
+      ) + "\nHatenaKihou-->";
+  }
+  
+  (function() {
+    var script = document.createElement('script');
+    script.textContent = [ // run in page's context. works for Greasemonkey & Chrome
+      ,"function fireMyEvent(o) {"
+        ,"if (o.error) return;"
+        ,"var url = o.query.diagnostics.url;"
+        ,"url = url.content || url[url.length - 1].content;"
+        ,"var title = o.query.results;"
+        ,"if (window.opera) {"
+          ,"var ev = document.createEvent('Event');"
+          ,"ev.initEvent('TitleReady', true, false);"
+          ,"ev.url = url;"
+          ,"ev.title = title;"
+        ,"} else {"
+          ,"var ev = document.createEvent('MessageEvent');"
+          ,"ev.initMessageEvent('TitleReady', true, false," // type, canBubble, cancelable
+            ,"JSON.stringify({url: url, title: title})," // data
+            ,"location.protocol + '//' + location.host," // origin
+            ,"''," // lastEventId
+            ,"window" // source
+          ,");"
+        ,"}"
+        ,"document.dispatchEvent(ev);"
+      ,"}"
+    ].join('\n');
+    document.body.appendChild(script);
+  })();
+  
+  var URL2TITLE = {};
+  document.addEventListener('TitleReady', function(ev) {
+    var data = ev.data ? JSON.parse(ev.data) : ev;
+    URL2TITLE[data.url] = data.title || null;
+    replaceTitles();
+    setTextArea();
+  }, false);
+  
+  function replaceTitles() {
+    Array.prototype.forEach.call(
+      hatenaPreview.getElementsByTagName('a'), 
+      function(a) {
+        if (a.textContent === '{{title}}') {
+          var title = URL2TITLE[a.href];
+          if (title === void 0) {
+            // title must be fetched
+          } else if (title === null) {
+            a.textContent = a.href;
+          } else if (title === '') {
+            // JSONP not loaded yet
+          } else {
+            a.textContent = title;
+            var grandpa = a.parentNode.parentNode;
+            if (/blockquote/i.test(grandpa.tagName) && 
+              grandpa.getAttribute('title') === '{{title}}') 
+              grandpa.setAttribute('title', title);
+          }
+        }
+      }
+    );
+  }
+  
+  function fetchTitles() {
+    Array.prototype.forEach.call(
+      hatenaPreview.getElementsByTagName('a'), 
+      function(a) {
+        var url = a.href;
+        if (a.textContent === '{{title}}' && URL2TITLE[url] === void 0) {
+          URL2TITLE[url] = '';
+          var api = "http://query.yahooapis.com/v1/public/yql" +
+            "?format=json&callback=fireMyEvent&q=select%20*%20from%20html%20where%20url%3d'" +
+            encodeURIComponent(url) + "'%20and%20xpath%3d'%2f%2ftitle%2ftext()'";
+          var script = document.createElement('script');
+          script.src = api;
+          document.body.appendChild(script);
+        }
+      }
+    );
+  }
+};
+
+bloggerHatenaMarkup();
