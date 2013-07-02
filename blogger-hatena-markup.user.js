@@ -5524,14 +5524,10 @@ var bloggerHatenaMarkup = function () {
   })();
 
   var initHatena = function() {  
+    var BOX_SIZING = "-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;";
     var addHatenaElements = function() {
-      var BOX_SIZING = "-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;";
-      textarea.style.height = "50%";
-      textarea.style += BOX_SIZING;
-
       var createLeftContainer = function() {
         var createHatenaEditor = function() {
-          console.debug("createHatenaEditor");
           hatenaEditor = document.createElement("textarea");
           hatenaEditor.setAttribute("id", "hatenaEditor");
           hatenaEditor.setAttribute('style', [
@@ -5556,7 +5552,6 @@ var bloggerHatenaMarkup = function () {
         };
 
         var createCheckbox = function() {
-          console.debug("createCheckbox");
           hatenaEditorCheckbox = document.createElement("input");
           hatenaEditorCheckbox.setAttribute("type", "checkbox");
           hatenaEditorCheckbox.setAttribute("id", "hatenaEditorCheckbox");
@@ -5576,7 +5571,6 @@ var bloggerHatenaMarkup = function () {
           return checkboxDiv;
         };
 
-        console.debug("createLeftContainer");
         var leftContainer = document.createElement("div");
         leftContainer.setAttribute('style', [
           'position:relative;',
@@ -5615,6 +5609,10 @@ var bloggerHatenaMarkup = function () {
     var addStyles = function() {
       var style = document.createElement("style");
       style.textContent = [
+        ,"#postingHtmlBox {"
+          ,"height: 50%;"
+          ,BOX_SIZING
+        ,"}"
         ,"#hatenaPreview h4 {"
           ,"font-weight: bold;"
           ,"font-size: 15px;"
