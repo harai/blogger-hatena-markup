@@ -5422,6 +5422,7 @@ var bloggerHatenaMarkup = function () {
   var hatenaEditor = null;
   var hatenaEditorCheckbox = null;
   var hatenaPreview = null;
+  var hatenaLeftContainer = null;
   
   var postingHtmlBoxHiddenState = function() {
     console.debug(">>> on postingHtmlBoxHiddenState");
@@ -5470,12 +5471,16 @@ var bloggerHatenaMarkup = function () {
 
     var enable = function() {
       enabled = true;
+      textarea.style.height = "20%";
+      hatenaPreview.style.height = hatenaLeftContainer.style.height = "80%";
       hatenaEditorCheckbox.checked = true;
       hatenaEditor.disabled = false;
     };
 
     var disable = function() {
       enabled = false;
+      textarea.style.height = "80%";
+      hatenaPreview.style.height = hatenaLeftContainer.style.height = "20%";
       hatenaEditorCheckbox.checked = false;
       hatenaEditor.disabled = true;
     };
@@ -5571,19 +5576,18 @@ var bloggerHatenaMarkup = function () {
           return checkboxDiv;
         };
 
-        var leftContainer = document.createElement("div");
-        leftContainer.setAttribute('style', [
+        hatenaLeftContainer = document.createElement("div");
+        hatenaLeftContainer.setAttribute('style', [
           'position:relative;',
           'display:block;',
           'float:left;',
-          'height:50%;',
           'width:50%;',
           BOX_SIZING
         ].join(''));
-        leftContainer.appendChild(createCheckbox());
-        leftContainer.appendChild(createHatenaEditor());
+        hatenaLeftContainer.appendChild(createCheckbox());
+        hatenaLeftContainer.appendChild(createHatenaEditor());
 
-        return leftContainer;
+        return hatenaLeftContainer;
       };
 
       var createHatenaPreview = function() {
@@ -5592,7 +5596,6 @@ var bloggerHatenaMarkup = function () {
         hatenaPreview.setAttribute('style', [
           'float:right;',
           'width:50%;',
-          'height:50%;',
           'border:solid black 1px;',
           'padding:5px;',
           BOX_SIZING
@@ -5610,7 +5613,6 @@ var bloggerHatenaMarkup = function () {
       var style = document.createElement("style");
       style.textContent = [
         ,"#postingHtmlBox {"
-          ,"height: 50%;"
           ,BOX_SIZING
         ,"}"
         ,"#hatenaPreview h4 {"
