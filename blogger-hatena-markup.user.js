@@ -5420,6 +5420,7 @@ var bloggerHatenaMarkup = function () {
   var hatena = new Hatena({sectionanchor: '\u25a0'});
   var textarea = null;
   var hatenaEditor = null;
+  var hatenaEditorCheckbox = null;
   var hatenaPreview = null;
   
   var postingHtmlBoxHiddenState = function() {
@@ -5456,10 +5457,42 @@ var bloggerHatenaMarkup = function () {
       }
       observer.disconnect();
       
+      hatenaEditorToggler.disable();
+      hatenaEditorToTextareaSynchronizer.stop();
+
       postingHtmlBoxHiddenState();
     });
     observer.observe(document.body, { attributes: true, subtree: true });
   };
+
+  var hatenaEditorToggler = (function() {
+    var enabled = false;
+
+    var enable = function() {
+      enabled = true;
+      hatenaEditorCheckbox.checked = true;
+      hatenaEditor.disabled = false;
+    };
+
+    var disable = function() {
+      enabled = false;
+      hatenaEditorCheckbox.checked = false;
+      hatenaEditor.disabled = true;
+    };
+
+    return {
+      init: function() {
+        hatenaEditorCheckbox.addEventListener("click", function(e) {
+          (enabled ? disable : enable)();
+        }, false);
+
+        disable();
+      },
+
+      enable: enable,
+      disable: disable
+    };
+  })();
 
   var hatenaEditorToTextareaSynchronizer = (function() {
     var timer = null;
@@ -5495,32 +5528,90 @@ var bloggerHatenaMarkup = function () {
       var BOX_SIZING = "-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;";
       textarea.style.height = "50%";
       textarea.style += BOX_SIZING;
+
+      var createLeftContainer = function() {
+        var createHatenaEditor = function() {
+          console.debug("createHatenaEditor");
+          hatenaEditor = document.createElement("textarea");
+          hatenaEditor.setAttribute("id", "hatenaEditor");
+          hatenaEditor.setAttribute('style', [
+            "width:100%;",
+            "height:100%;",
+            'resize:none;',
+            'display:block;',
+            BOX_SIZING
+          ].join(''));
+
+          var hatenaEditorDiv = document.createElement("div");
+          hatenaEditorDiv.setAttribute('style', [
+            "top:30px;",
+            "bottom:0;",
+            "position:absolute;",
+            "width:100%;",
+            BOX_SIZING
+          ].join(''));
+          hatenaEditorDiv.appendChild(hatenaEditor);
+
+          return hatenaEditorDiv;
+        };
+
+        var createCheckbox = function() {
+          console.debug("createCheckbox");
+          hatenaEditorCheckbox = document.createElement("input");
+          hatenaEditorCheckbox.setAttribute("type", "checkbox");
+          hatenaEditorCheckbox.setAttribute("id", "hatenaEditorCheckbox");
+
+          var label = document.createElement("label");
+          label.setAttribute("for", "hatenaEditorCheckbox");
+          label.appendChild(document.createTextNode("Use Hatena Markup"));
+
+          var checkboxDiv = document.createElement("div");
+          checkboxDiv.setAttribute('style', [
+            "height:30px;",
+            'padding:5px;'
+          ].join(''));
+          checkboxDiv.appendChild(hatenaEditorCheckbox);
+          checkboxDiv.appendChild(label);
+
+          return checkboxDiv;
+        };
+
+        console.debug("createLeftContainer");
+        var leftContainer = document.createElement("div");
+        leftContainer.setAttribute('style', [
+          'position:relative;',
+          'display:block;',
+          'float:left;',
+          'height:50%;',
+          'width:50%;',
+          BOX_SIZING
+        ].join(''));
+        leftContainer.appendChild(createCheckbox());
+        leftContainer.appendChild(createHatenaEditor());
+
+        return leftContainer;
+      };
+
+      var createHatenaPreview = function() {
+        hatenaPreview = document.createElement("div");
+        hatenaPreview.setAttribute('id', "hatenaPreview");
+        hatenaPreview.setAttribute('style', [
+          'float:right;',
+          'width:50%;',
+          'height:50%;',
+          'border:solid black 1px;',
+          'padding:5px;',
+          BOX_SIZING
+        ].join(''));
+
+        return hatenaPreview;
+      };
+
       var box = textarea.parentElement;
-      hatenaEditor = document.createElement("textarea");
-      hatenaEditor.setAttribute("id", "hatenaEditor");
-      hatenaEditor.setAttribute('style', [
-        'resize:none;',
-        'display:block;',
-        'float:left;',
-        'height:50%;',
-        'width:50%;',
-        'padding:0 0 0 5px;',
-        BOX_SIZING
-      ].join(''));
-      hatenaPreview = document.createElement("div");
-      hatenaPreview.setAttribute('id', "hatenaPreview");
-      hatenaPreview.setAttribute('style', [
-        'float:right;',
-        'width:50%;',
-        'height:50%;',
-        'border:solid black 1px;',
-        'padding:5px;',
-        BOX_SIZING
-      ].join(''));
-      box.appendChild(hatenaEditor);
-      box.appendChild(hatenaPreview);
+      box.appendChild(createLeftContainer());
+      box.appendChild(createHatenaPreview());
     };
-  
+
     var addStyles = function() {
       var style = document.createElement("style");
       style.textContent = [
@@ -5535,7 +5626,7 @@ var bloggerHatenaMarkup = function () {
     addStyles();
     addHatenaElements();
     hatenaEditorToTextareaSynchronizer.init();
-    hatenaEditorToTextareaSynchronizer.start();
+    hatenaEditorToggler.init();
   };
   
   var initState = function() {
@@ -5570,10 +5661,10 @@ var bloggerHatenaMarkup = function () {
   var textareaToHatenaEditor = function() {
     var h = extractHatenaOrNull(textarea.value);
     if (h === null) {
-      hatenaEditorToTextareaSynchronizer.stop();
       hatenaEditor.value = "";
-      hatenaEditorToTextareaSynchronizer.start();
     } else {
+      hatenaEditorToggler.enable();
+      hatenaEditorToTextareaSynchronizer.start();
       hatenaEditor.value = h;
       seePreview();
     }
