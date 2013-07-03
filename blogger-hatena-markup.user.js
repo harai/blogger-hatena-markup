@@ -886,7 +886,6 @@ var bloggerHatenaMarkup = function () {
       observer.disconnect();
       
       hatenaEditorToggler.disable();
-      hatenaEditorToTextareaSynchronizer.stop();
 
       postingHtmlBoxHiddenState();
     });
@@ -902,6 +901,7 @@ var bloggerHatenaMarkup = function () {
       hatenaPreview.style.height = hatenaLeftContainer.style.height = "80%";
       hatenaEditorCheckbox.checked = true;
       hatenaEditor.disabled = false;
+      hatenaEditorToTextareaSynchronizer.start();
     };
 
     var disable = function() {
@@ -910,10 +910,12 @@ var bloggerHatenaMarkup = function () {
       hatenaPreview.style.height = hatenaLeftContainer.style.height = "20%";
       hatenaEditorCheckbox.checked = false;
       hatenaEditor.disabled = true;
+      hatenaEditorToTextareaSynchronizer.stop();
     };
 
     return {
       init: function() {
+        hatenaEditorToTextareaSynchronizer.init();
         hatenaEditorCheckbox.addEventListener("click", function(e) {
           (enabled ? disable : enable)();
         }, false);
@@ -1052,7 +1054,6 @@ var bloggerHatenaMarkup = function () {
   
     addStyles();
     addHatenaElements();
-    hatenaEditorToTextareaSynchronizer.init();
     hatenaEditorToggler.init();
   };
   
@@ -1091,7 +1092,6 @@ var bloggerHatenaMarkup = function () {
       hatenaEditor.value = "";
     } else {
       hatenaEditorToggler.enable();
-      hatenaEditorToTextareaSynchronizer.start();
       hatenaEditor.value = h;
       seePreview();
     }
