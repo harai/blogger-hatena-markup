@@ -25,10 +25,5 @@
 // This script makes use of:
 //   text-hatena.js 
 //     http://tech.nitoyon.com/javascript/application/texthatena/download.html
-//   SHJS 
-//     http://shjs.sourceforge.net/
-//
-// Syntax-highlightable languages:
-//   C (c), C++ (cpp), CSS (css), diff (diff), HTML (html), Java (java), 
-//   JavaScript (javascript), Perl (perl), PHP (php), Python (python),
-//   Ruby (ruby), Scala (scala), Shell Script (sh), SQL (sql), XML (xml)
+//   blogger-hatena-syntax.user.js 
+//     https://gist.github.com/edvakf/346427
