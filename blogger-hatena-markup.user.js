@@ -75,6 +75,7 @@ String._unescapeHTML = function(s){
 Hatena_HTMLFilter = function(args){
 	this.self = {
 		context : args["context"],
+		filter : args["filter"],
 		html : ''
 	};
 	this.init();
@@ -86,7 +87,7 @@ Hatena_HTMLFilter.prototype = {
 
 	parse : function(html){
 		var c = this.self.context;
-		this.self.html = c.self.texthandler(html, c);
+		this.self.html = this.self.filter(html, c);
 	},
 
 	html : function(){
@@ -94,21 +95,65 @@ Hatena_HTMLFilter.prototype = {
 	}
 }
 
-
 // Hatena
 Hatena = function(args){
 	if(args == null) args = {};
-	this.self = {
-		html : '',
-		baseuri : args["baseuri"],
-		permalink : args["permalink"] || "",
-		ilevel : args["ilevel"] || 0,
-		invalidnode : args["invalidnode"] || [],
-		sectionanchor : args["sectionanchor"] || 'o-',
-		texthandler : args["texthandler"] || function(text, c){
-			// footnote
+	
+	var beforeFilter = function(text, c) {
+		var html = text;
+
+		var aliases = function() {
+			html = html.replace(/\[alias:([\w-]+):(https?:\/\/[^\]\s]+?)\]\n?/mg, function($0, $1, $2) {
+				c.aliases($1, $2);
+				return "";
+			});
+		};
+
+		var insertImages = function() {
+			html = html.replace(/\[gimage:([\w-]+)(?::([^\]]+))?\]/g, function($0, id, prop) {
+				var props = prop.split(/,/);
+				var size = props[0];
+				var pos = props[1] || null;
+				var alias = c.aliases(id);
+				if (alias === null) {
+					return "";
+				}
+				var url = alias.url.replace(/\/s\d+\//, "/s" + props[0] + "/");
+				
+				var img = document.createElement("img");
+				img.src = url;
+
+				var a = document.createElement("a");
+				a.href = alias.url;
+				if (pos === "left" || pos === "right") {
+					a.style = "clear: " + pos + "; float: " + pos + "; text-align: center";
+				}
+				a.appendChild(img);
+				
+				var figure = document.createElement("figure");
+				if (pos === "center") {
+					figure.style = "clear: both; text-align: center;";
+				}
+				figure.appendChild(a);
+				
+				var con = document.createElement("div");
+				con.appendChild(figure);
+				
+				return ">" + con.innerHTML + "<";
+			});
+		};
+
+		aliases();
+		insertImages();
+
+		return html;
+	};
+	
+	var afterFilter = function(text, c) {
+		var html = "";
+
+	  var footnote = function() {
 			var p = c.self.permalink;
-			var html = "";
 			var foot = text.split("((");
 			for(var i = 0; i < foot.length; i++){
 				if(i == 0){
@@ -133,6 +178,9 @@ Hatena = function(args){
 					html += '<span class="footnote"><a href="' + p + '#f' + num + '" title="' + note + '" name="fn' + num + '">*' + num + '</a></span>' + post;
 				}
 			}
+		};
+		
+		var autoLink = function() {
 			// auto link (added by edvakf)
 			html = html.replace(/\[(https?:\/\/[^\]\s]+?)(:title(=[^\]\n]*)?)?\]/g, function($0,$1,$2,$3) {
 				return '<a href="' + String._escapeHTML($1) + '">' + (
@@ -141,8 +189,24 @@ Hatena = function(args){
 					$1                 // use URL instead of title
 				) + '</a>';
 			});
-			return html;
-		}
+		};
+
+
+		footnote();
+		autoLink();
+
+		return html;
+	};
+
+	this.self = {
+		html : '',
+		baseuri : args["baseuri"],
+		permalink : args["permalink"] || "",
+		ilevel : args["ilevel"] || 0,
+		invalidnode : args["invalidnode"] || [],
+		sectionanchor : args["sectionanchor"] || 'o-',
+		beforeFilter : beforeFilter,
+		afterFilter : afterFilter,
 	};
 }
 Hatena.prototype = {
@@ -153,20 +217,31 @@ Hatena.prototype = {
 			permalink : this.self.permalink,
 			invalidnode : this.self.invalidnode,
 			sectionanchor : this.self.sectionanchor,
-			texthandler : this.self.texthandler
+			beforeFilter : this.self.beforeFilter,
+			afterFilter : this.self.afterFilter,
 		});
 		var c = this.self.context;
+
+		var beforeFilter = new Hatena_HTMLFilter({
+			context : c,
+			filter: c.self.beforeFilter
+		});
+		beforeFilter.parse(c.self.text);
+		c.text(beforeFilter.html());
+
 		var node = new Hatena_BodyNode();
 		node._new({
 			context : c,
 			ilevel : this.self.ilevel
 		});
 		node.parse();
-		var parser = new Hatena_HTMLFilter({
-			context : c
+
+		var afterFilter = new Hatena_HTMLFilter({
+			context : c,
+			filter: c.self.afterFilter
 		});
-		parser.parse(c.html());
-		this.self.html = parser.html();
+		afterFilter.parse(c.html());
+		this.self.html = afterFilter.html();
 
 		if (this.self.context.footnotes().length != 0) {
 			var node = new Hatena_FootnoteNode();
@@ -194,17 +269,20 @@ Hatena_Context = function(args){
 		permalink : args["permalink"],
 		invalidnode : args["invalidnode"],
 		sectionanchor : args["sectionanchor"],
-		texthandler : args["texthandler"],
+		beforeFilter : args["beforeFilter"],
+		afterFilter : args["afterFilter"],
 		_htmllines : [],
 		footnotes : Array(),
 		sectioncount : 0,
 		syntaxrefs : [],
-		noparagraph : 0
+		noparagraph : 0,
+		aliases: {},
 	};
 	this.init();
 }
 Hatena_Context.prototype = {
 	init : function() {
+		// this.text(this.self.text);
 		this.self.text = this.self.text.replace(/\r/g, "");
 		this.self.lines = this.self.text.split('\n');
 		this.self.index = -1;
@@ -224,6 +302,12 @@ Hatena_Context.prototype = {
 
 	currentline : function() {
 		return this.self.lines[this.self.index];
+	},
+
+	text : function(text) {
+		this.self.text = text.replace(/\r/g, "");
+		this.self.lines = this.self.text.split('\n');
+		this.self.index = -1;
 	},
 
 	html : function() {
@@ -259,6 +343,13 @@ Hatena_Context.prototype = {
 
 	incrementsection : function() {
 		return this.self.sectioncount++;
+	},
+
+	aliases: function(id, url) {
+		if (url != null) {
+			this.self.aliases[id] =  { url: url };
+		}
+		return this.self.aliases[id];
 	}
 }
 
@@ -547,7 +638,7 @@ Hatena_PreNode.prototype = Object.extend(new Hatena_Node(), {
 	init :function(){
 		this.self.pattern = /^>\|$/;
 		this.self.endpattern = /(.*)\|<$/;
-		this.self.startstring = "<pre>";
+		this.self.startstring = "<pre>"; // TODO add <code> and </code>
 		this.self.endstring = "</pre>";
 	},
 
@@ -838,12 +929,44 @@ WScript.echo(h.html());
 // end of text-hatena0-2.js
 
 var bloggerHatenaMarkup = function () {
-  console.debug("user script started");
-  
+	var insertTextUnderCursor = function(textarea, text) {
+		var nSelStart = textarea.selectionStart;
+		var nSelEnd = textarea.selectionEnd;
+		var sOldText = textarea.value;
+		textarea.value = sOldText.substring(0, nSelStart) + text + sOldText.substring(nSelEnd);
+		var offset = nSelStart + text.length;
+		textarea.setSelectionRange(offset, offset);
+		textarea.focus();
+	}
+
+	var generateGuid = function() {
+		var s4 = function() {
+		  return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+		};
+	  return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+	};
+
   var isShown = function(el) {
     return el.offsetWidth !== 0;
   };
-  
+
+  var isImageDialogShown = function() {
+    var IMAGE_STR = "html-image-picker";
+    var STR_LEN = IMAGE_STR.length;
+    var iframes = document.getElementsByTagName("iframe");
+    for (var i = 0; i < iframes.length; i++) {
+      if (isShown(iframes[i]) && iframes[i].src.substr(-STR_LEN, STR_LEN) === IMAGE_STR) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  var isModalDialogShown = function() {
+    var el = document.getElementById(":w");
+    return !!el && isShown(el);
+  };
+
   var hatena = new Hatena({sectionanchor: '\u25a0'});
   var textarea = null;
   var hatenaEditor = null;
@@ -861,35 +984,135 @@ var bloggerHatenaMarkup = function () {
       }
       observer.disconnect();
       
+      var waitLoop = function() {
+        if (!textarea.value.match(/^\s*$/)) {
+          setTimeout(textareaToHatenaEditor, 50);
+        } else {
+          setTimeout(waitLoop, 100);
+        }
+      };
+      waitLoop();
+  
       postingHtmlBoxShownState();
     });
     observer.observe(document.body, { attributes: true, subtree: true });
   };
   
-  var postingHtmlBoxShownState = function() {
-    console.debug(">>> on postingHtmlBoxShownState");
-  
-    var waitLoop = function() {
-      if (!textarea.value.match(/^\s*$/)) {
-        setTimeout(textareaToHatenaEditor, 50);
-      } else {
-        setTimeout(waitLoop, 100);
-      }
-    };
-    waitLoop();
-  
+  var imageDialogShownState = function() {
+    console.debug(">>> on imageDialogShownState");
+
+    if (hatenaEditorToggler.isEnabled()) {
+      textarea.setSelectionRange(0, 0);
+    }
+
     var observer = new MutationObserver(function() {
-      console.debug(">>> on postingHtmlBoxHiddenState mutation found");
-      if (isShown(textarea)) {
+      console.debug(">>> on imageDialogShownState mutation found");
+      if (isImageDialogShown() || isModalDialogShown()) {
         return;
       }
       observer.disconnect();
-      
-      hatenaEditorToggler.disable();
 
-      postingHtmlBoxHiddenState();
+      if (hatenaEditorToggler.isEnabled()) {
+        addImageMarkup();
+      }
+
+      postingHtmlBoxShownState();
     });
-    observer.observe(document.body, { attributes: true, subtree: true });
+    observer.observe(document.body, { childList: true, attributes: true, subtree: true });
+  };
+  
+  var postingHtmlBoxShownState = function() {
+    console.debug(">>> on postingHtmlBoxShownState");
+  
+    var observer = new MutationObserver(function() {
+      console.debug(">>> on postingHtmlBoxShownState mutation found");
+      if (isShown(textarea)) {
+        if (isImageDialogShown()) {
+          observer.disconnect();
+          imageDialogShownState();
+        }
+      } else {
+        observer.disconnect();
+        
+        hatenaEditorToggler.disable();
+  
+        postingHtmlBoxHiddenState();
+      }
+    });
+    observer.observe(document.body, { childList: true, attributes: true, subtree: true });
+  };
+
+  var addImageMarkup = function() {
+  	var extractImageData = function() {
+	    var addedHtml = textarea.value.substr(0, textarea.selectionStart);
+	    if (addedHtml.length === 0) {
+	      return;
+	    }
+	    var d = document.createElement("div");
+	    d.innerHTML = addedHtml;
+	    
+	    var extractData = function(el) {
+		    var pos = null;
+		    var size = null;
+		    var url = null;
+		
+		    var inA = function (a) {
+		    	if (a.style.clear === "left" || a.style.clear === "right") {
+		    		pos = a.style.clear;
+		    	}
+		    	url = a.href;
+		    	var img = a.childNodes[0];
+		    	var m = img.src.match(/\/s(\d+)\//);
+		    	if (m !== null) {
+		    		size = parseInt(m[1]);
+			    }
+		    };
+		
+				console.debug(el.tagName);
+		    if (el.tagName == "DIV") {
+		    	pos = "center";
+		    	inA(el.childNodes[0]);
+		    } else {
+		    	inA(el);
+		    }
+				
+		    return {
+		    	pos: pos,
+		    	size: size,
+		    	url: url,
+		    	id: generateGuid()
+		    };
+	    };
+	    
+	    var idata = [];
+	    for (var i = 0; i < d.childNodes.length; i++) {
+		    idata.push(extractData(d.childNodes[i]));
+	    }
+	    
+	    return idata;
+  	};
+  	
+  	var outputToTextarea = function(imageData) {
+  		var str = imageData.map(function(image) {
+  			return "[gimage:" + image.id + ":" + image.size +
+  				(image.pos !== null ? ("," + image.pos) : "") + "]\n";
+  		}).join("");
+  		insertTextUnderCursor(hatenaEditor, str);
+  		
+  		var currentPos = hatenaEditor.selectionStart;
+  		hatenaEditor.setSelectionRange(hatenaEditor.value.length, hatenaEditor.value.length);
+  		var str2 = imageData.map(function(image) {
+  			return "\n[alias:" + image.id + ":" + image.url + "]";
+  		}).join("");
+  		insertTextUnderCursor(hatenaEditor, str2);
+  		hatenaEditor.setSelectionRange(currentPos, currentPos);
+  	};
+  	
+  	var imaged = extractImageData();
+  	console.debug(imaged);
+  	outputToTextarea(imaged);
+  	
+  	seePreview();
   };
 
   var hatenaEditorToggler = (function() {
@@ -924,7 +1147,10 @@ var bloggerHatenaMarkup = function () {
       },
 
       enable: enable,
-      disable: disable
+      disable: disable,
+      isEnabled: function() {
+        return enabled;
+      }
     };
   })();
 
@@ -1056,7 +1282,7 @@ var bloggerHatenaMarkup = function () {
     addHatenaElements();
     hatenaEditorToggler.init();
   };
-  
+
   var initState = function() {
     console.debug(">>> on initState");
   
@@ -1068,6 +1294,7 @@ var bloggerHatenaMarkup = function () {
       observer.disconnect();
       
       initHatena();
+      // mutationObserverTester();
       
       if (isShown(textarea)) {
         postingHtmlBoxShownState();
