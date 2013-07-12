@@ -1,6 +1,6 @@
 # Hatena Markup for Blogger
 
-A Writing Environment for advanced Blogger users.
+A writing environment for advanced Blogger users.
 
 ## Overview
 
@@ -20,7 +20,7 @@ You might think I should use [Markdown](http://daringfireball.net/projects/markd
 
 Though it is true Markdown is much more popular than Hatena Markup, the purpose is a little bit different.  While Hatena Markup was designed to reduce typing when writing blog posts, Markdown was designed to retain readability.
 
-Because no one except the writer reads the original text full of strange symbols, adopting Hatena Markup is a better decision.
+Because no one except the writer reads the original text full of strange symbols, adopting Hatena Markup is the better decision.
 
 ## Syntax
 
