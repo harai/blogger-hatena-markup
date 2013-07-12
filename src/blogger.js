@@ -37,7 +37,7 @@ var bloggerHatenaMarkup = function () {
         return !!el && isShown(el);
     };
 
-    var hatena = new Hatena({sectionanchor: '\u25a0'});
+    var hatena = new Hatena({ doc: document });
     var textarea = null;
     var hatenaEditor = null;
     var hatenaEditorCheckbox = null;
