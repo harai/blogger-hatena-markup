@@ -44,16 +44,48 @@ var bloggerHatenaMarkup = function () {
     var hatenaPreview = null;
     var hatenaLeftContainer = null;
     
-    var postingHtmlBoxHiddenState = function() {
-        console.debug(">>> on postingHtmlBoxHiddenState");
-    
-        var observer = new MutationObserver(function() {
-            console.debug(">>> on postingHtmlBoxHiddenState mutation found");
-            if (!isShown(textarea)) {
-                return;
+    var stateTemplate = function(args) {
+        var name = args.name ? args.name : "anonymous state"
+        return function() {
+            console.debug(">>> on " + name);
+            if (args.initialize) {
+                args.initialize();
             }
-            observer.disconnect();
-            
+
+            var observer = new MutationObserver(function() {
+                console.debug(">>> on " + name + " mutation found");
+                if (args.continueObserving) {
+                    if (args.continueObserving()) {
+                        return;
+                    }
+                }
+
+                observer.disconnect();
+
+                if (args.postObserving) {
+                    args.postObserving();
+                }
+                
+                if (args.nextState) {
+                    var nextState = args.nextState();
+                    nextState();
+                }
+            });
+            observer.observe(args.observingNode(), args.observingType);
+        };
+    };
+
+
+    var postingHtmlBoxHiddenState = stateTemplate({
+        name: "postingHtmlBoxHiddenState",
+        observingNode: function() {
+            return document.body;
+        },
+        observingType: { attributes: true, subtree: true },
+        continueObserving: function() {
+            return !isShown(textarea);
+        },
+        postObserving: function() {
             var waitLoop = function() {
                 if (!textarea.value.match(/^\s*$/)) {
                     setTimeout(textareaToHatenaEditor, 50);
@@ -62,55 +94,56 @@ var bloggerHatenaMarkup = function () {
                 }
             };
             waitLoop();
-    
-            postingHtmlBoxShownState();
-        });
-        observer.observe(document.body, { attributes: true, subtree: true });
-    };
-    
-    var imageDialogShownState = function() {
-        console.debug(">>> on imageDialogShownState");
-
-        if (hatenaEditorToggler.isEnabled()) {
-            textarea.setSelectionRange(0, 0);
+        },
+        nextState: function() {
+            return postingHtmlBoxShownState;
         }
+    });
 
-        var observer = new MutationObserver(function() {
-            console.debug(">>> on imageDialogShownState mutation found");
-            if (isImageDialogShown() || isModalDialogShown()) {
-                return;
+    var imageDialogShownState = stateTemplate({
+        name: "imageDialogShownState",
+        initialize: function() {
+            if (hatenaEditorToggler.isEnabled()) {
+                textarea.setSelectionRange(0, 0);
             }
-            observer.disconnect();
-
+        },
+        observingNode: function() {
+            return document.body;
+        },
+        observingType: { childList: true, attributes: true, subtree: true },
+        continueObserving: function() {
+            return isImageDialogShown() || isModalDialogShown();
+        },
+        postObserving: function() {
             if (hatenaEditorToggler.isEnabled()) {
                 addImageMarkup();
             }
+        },
+        nextState: function() {
+            return postingHtmlBoxShownState;
+        }
+    });
 
-            postingHtmlBoxShownState();
-        });
-        observer.observe(document.body, { childList: true, attributes: true, subtree: true });
-    };
-    
-    var postingHtmlBoxShownState = function() {
-        console.debug(">>> on postingHtmlBoxShownState");
-    
-        var observer = new MutationObserver(function() {
-            console.debug(">>> on postingHtmlBoxShownState mutation found");
-            if (isShown(textarea)) {
-                if (isImageDialogShown()) {
-                    observer.disconnect();
-                    imageDialogShownState();
-                }
-            } else {
-                observer.disconnect();
-                
+    var postingHtmlBoxShownState = stateTemplate({
+        name: "postingHtmlBoxShownState",
+        observingNode: function() {
+            return document.body;
+        },
+        observingType: { childList: true, attributes: true, subtree: true },
+        continueObserving: function() {
+            return isShown(textarea) && !isImageDialogShown();
+        },
+        nextState: function() {
+            if (isImageDialogShown()) {
+                return imageDialogShownState;
+            } else if (!isShown(textarea)) {
                 hatenaEditorToggler.disable();
-    
-                postingHtmlBoxHiddenState();
+                return postingHtmlBoxHiddenState;
+            } else {
+                throw "does not happen";
             }
-        });
-        observer.observe(document.body, { childList: true, attributes: true, subtree: true });
-    };
+        }
+    });
 
     var addImageMarkup = function() {
         var extractImageData = function() {
@@ -131,17 +164,16 @@ var bloggerHatenaMarkup = function () {
                         pos = a.style.clear;
                     }
                     url = a.href;
-                    var img = a.childNodes[0];
+                    var img = a.firstElementChild;
                     var m = img.src.match(/\/s(\d+)\//);
                     if (m !== null) {
                         size = parseInt(m[1]);
                     }
                 };
         
-                console.debug(el.tagName);
                 if (el.tagName == "DIV") {
                     pos = "center";
-                    inA(el.childNodes[0]);
+                    inA(el.firstElementChild);
                 } else {
                     inA(el);
                 }
@@ -353,27 +385,25 @@ var bloggerHatenaMarkup = function () {
         hatenaEditorToggler.init();
     };
 
-    var initState = function() {
-        console.debug(">>> on initState");
-    
-        var observer = new MutationObserver(function() {
-            console.debug(">>> on initState mutation found");
-            if (!(textarea = document.getElementById("postingHtmlBox"))) {
-                return;
-            }
-            observer.disconnect();
-            
+    var initState = stateTemplate({
+        name: "initState",
+        observingNode: function() {
+            return document.body;
+        },
+        observingType: { childList: true, subtree: true },
+        continueObserving: function() {
+            return !(textarea = document.getElementById("postingHtmlBox"));
+        },
+        postObserving: function() {
             initHatena();
-            // mutationObserverTester();
-            
-            if (isShown(textarea)) {
-                postingHtmlBoxShownState();
-            } else {
-                postingHtmlBoxHiddenState();
+        },
+        nextState: function() {
+            if (isShown(textarea)) { // TODO remove because useless
+                return postingHtmlBoxShownState;
             }
-        });
-        observer.observe(document.body, { childList: true, subtree: true });
-    };
+            return postingHtmlBoxHiddenState;
+        }
+    });
     
     var extractHatenaOrNull = function(str) {
         var m = str.match(/\n<!--HatenaKihou\r?\n([\s\S]*)\nHatenaKihou-->/);
