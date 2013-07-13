@@ -401,9 +401,6 @@ var bloggerHatenaMarkup = function () {
             initHatena();
         },
         nextState: function() {
-            if (isShown(textarea)) { // TODO remove because useless
-                return postingHtmlBoxShownState;
-            }
             return postingHtmlBoxHiddenState;
         }
     });

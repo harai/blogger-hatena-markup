@@ -16,14 +16,14 @@ describe 'Hatena', ->
 
         it 'should parse normal markup', ->
             i = """
-**はてな記法JavaScript
+*はてな記法JavaScript
 はてな記法ワープロは JavaScript ならではの利点を生かしたダイナミックなワープロです。
 
 試しに色々入力してみてください。即座に出力画面が反映されます((Windows 版 IE6 および Firefox 1.0 でのみ確認しています))。
 
 はてな記法の変換は <a href="http://search.cpan.org/dist/Text-Hatena/">Text::Hatena</a> を JavaScript に移植した "text-hatena.js" を活用しています。
 
-**変更履歴
+*変更履歴
 |*2005/12/1|ソース機能追加 (HTMLソースを表示できます)|
 |*2005/11/21|はてな記法ワープロ完成|
 |*2005/11/13|text-hatena.js 移植開始|
@@ -62,7 +62,7 @@ describe 'Hatena', ->
 
         it 'should parse minus list notation', ->
             i = """
-**Metasyntactic Variables
+*Metasyntactic Variables
 +Japanese
 --Hoge
 --Huga
