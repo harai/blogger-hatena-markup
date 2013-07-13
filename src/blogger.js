@@ -223,36 +223,35 @@ var bloggerHatenaMarkup = function () {
     var hatenaEditorToggler = (function() {
         var enabled = false;
 
-        var enable = function() {
-            enabled = true;
-            textarea.style.height = "20%";
-            hatenaPreview.style.height = hatenaLeftContainer.style.height = "80%";
-            hatenaEditorCheckbox.checked = true;
-            hatenaEditor.disabled = false;
-            hatenaEditorToTextareaSynchronizer.start();
-        };
-
-        var disable = function() {
-            enabled = false;
-            textarea.style.height = "80%";
-            hatenaPreview.style.height = hatenaLeftContainer.style.height = "20%";
-            hatenaEditorCheckbox.checked = false;
-            hatenaEditor.disabled = true;
-            hatenaEditorToTextareaSynchronizer.stop();
-        };
+        var changeState = function(enable) {
+            enabled = enable;
+            textarea.style.height = enable ? "20%" : "80%";
+            hatenaPreview.style.height = hatenaLeftContainer.style.height = enable ? "80%" : "20%";
+            hatenaEditorCheckbox.checked = enable;
+            hatenaEditor.disabled = !enable;
+            if (enable) {
+                hatenaEditorToTextareaSynchronizer.start();
+            } else {
+                hatenaEditorToTextareaSynchronizer.stop();
+            }
+        }
 
         return {
             init: function() {
                 hatenaEditorToTextareaSynchronizer.init();
                 hatenaEditorCheckbox.addEventListener("click", function(e) {
-                    (enabled ? disable : enable)();
+                    changeState(!enabled);
                 }, false);
 
-                disable();
+                changeState(false);
             },
 
-            enable: enable,
-            disable: disable,
+            enable: function() {
+                changeState(true);
+            },
+            disable: function() {
+                changeState(false);
+            },
             isEnabled: function() {
                 return enabled;
             }
