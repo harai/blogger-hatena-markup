@@ -400,6 +400,7 @@ var bloggerHatenaMarkup = function () {
                     'width:50%;',
                     'border:solid black 1px;',
                     'padding:5px;',
+                    "overflow:scroll;",
                     BOX_SIZING
                 ].join(''));
 
@@ -417,10 +418,51 @@ var bloggerHatenaMarkup = function () {
                 ,"#postingHtmlBox {"
                     ,BOX_SIZING
                 ,"}"
-                ,"#hatenaPreview h4 {"
-                    ,"font-weight: bold;"
-                    ,"font-size: 15px;"
-                ,"}" // TODO complete this
+// based on http://www.w3.org/TR/CSS21/sample.html
+,"#hatenaPreview address,#hatenaPreview blockquote,#hatenaPreview body,#hatenaPreview dd,#hatenaPreview div,#hatenaPreview dl,#hatenaPreview dt,#hatenaPreview fieldset,#hatenaPreview form,#hatenaPreview frame,#hatenaPreview frameset,#hatenaPreview h1,#hatenaPreview h2,#hatenaPreview h3,#hatenaPreview h4,#hatenaPreview h5,#hatenaPreview h6,#hatenaPreview noframes,#hatenaPreview ol,#hatenaPreview p,#hatenaPreview ul,#hatenaPreview center,#hatenaPreview dir,#hatenaPreview hr,#hatenaPreview menu,#hatenaPreview pre{display:block;unicode-bidi:embed;}"
+,"#hatenaPreview li{display:list-item;}"
+,"#hatenaPreview head{display:none;}"
+,"#hatenaPreview table{display:table;}"
+,"#hatenaPreview tr{display:table-row;}"
+,"#hatenaPreview thead{display:table-header-group;}"
+,"#hatenaPreview tbody{display:table-row-group;}"
+,"#hatenaPreview tfoot{display:table-footer-group;}"
+,"#hatenaPreview col{display:table-column;}"
+,"#hatenaPreview colgroup{display:table-column-group;}"
+,"#hatenaPreview td,#hatenaPreview th{display:table-cell;}"
+,"#hatenaPreview caption{display:table-caption;}"
+,"#hatenaPreview th{font-weight:bolder;text-align:center;}"
+,"#hatenaPreview caption{text-align:center;}"
+,"#hatenaPreview body{margin:8px;}"
+,"#hatenaPreview h1,#hatenaPreview h2,#hatenaPreview h3,#hatenaPreview h4{font-size:2em;margin:0.67em 0;}"
+,"#hatenaPreview h5{font-size:1.5em;margin:0.75em 0;}"
+,"#hatenaPreview h6{font-size:1.17em;margin:0.83em 0;}"
+,"#hatenaPreview p,#hatenaPreview blockquote,#hatenaPreview ul,#hatenaPreview fieldset,#hatenaPreview form,#hatenaPreview ol,#hatenaPreview dl,#hatenaPreview dir,#hatenaPreview menu{margin:1.12em 0;}"
+,"#hatenaPreview h1,#hatenaPreview h2,#hatenaPreview h3,#hatenaPreview h4,#hatenaPreview h5,#hatenaPreview h6,#hatenaPreview b,#hatenaPreview strong{font-weight:bolder;}"
+,"#hatenaPreview blockquote{margin-left:40px;margin-right:40px;}"
+,"#hatenaPreview i,#hatenaPreview cite,#hatenaPreview em,#hatenaPreview var,#hatenaPreview address{font-style:italic;}"
+,"#hatenaPreview pre,#hatenaPreview tt,#hatenaPreview code,#hatenaPreview kbd,#hatenaPreview samp{font-family:monospace;}"
+,"#hatenaPreview pre{white-space:pre;}"
+,"#hatenaPreview button,#hatenaPreview textarea,#hatenaPreview input,#hatenaPreview select{display:inline-block;}"
+,"#hatenaPreview big{font-size:1.17em;}"
+,"#hatenaPreview small,#hatenaPreview sub,#hatenaPreview sup{font-size:0.83em;}"
+,"#hatenaPreview sub{vertical-align:sub;}"
+,"#hatenaPreview sup{vertical-align:super;}"
+,"#hatenaPreview table{border-spacing:2px;}"
+,"#hatenaPreview thead,#hatenaPreview tbody,#hatenaPreview tfoot{vertical-align:middle;}"
+,"#hatenaPreview td,#hatenaPreview th,#hatenaPreview tr{vertical-align:inherit;}"
+,"#hatenaPreview s,#hatenaPreview strike,#hatenaPreview del{text-decoration:line-through;}"
+,"#hatenaPreview hr{border:1px inset;}"
+,"#hatenaPreview ol,#hatenaPreview ul,#hatenaPreview dir,#hatenaPreview menu,#hatenaPreview dd{margin-left:40px;}"
+,"#hatenaPreview ol{list-style-type:decimal;}"
+,"#hatenaPreview ol ul,#hatenaPreview ul ol,#hatenaPreview ul ul,#hatenaPreview ol ol{margin-top:0;margin-bottom:0;}"
+,"#hatenaPreview u,#hatenaPreview ins{text-decoration:underline;}"
+,"#hatenaPreview br:before{content:\"\A\";white-space:pre-line;}"
+,"#hatenaPreview center{text-align:center;}"
+,"#hatenaPreview :link,#hatenaPreview :visited{text-decoration:underline;}"
+,"#hatenaPreview :focus{outline:thin dotted invert;}"
+,"#hatenaPreview figure{display:block;margin-top:1em;margin-bottom:1em;margin-left:40px;margin-right:40px;}"
+                ,"}"
             ].join('\n');
             document.head.appendChild(style);
         };
