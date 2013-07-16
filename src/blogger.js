@@ -7,7 +7,17 @@ var bloggerHatenaMarkup = function () {
         var offset = nSelStart + text.length;
         textarea.setSelectionRange(offset, offset);
         textarea.focus();
-    }
+    };
+
+    var resetCursorPosition = function(textarea) {
+        textarea.setSelectionRange(0, 0);
+    };
+
+    var getSelection = function(textarea) {
+        var start = textarea.selectionStart;
+        var end = textarea.selectionEnd;
+        return textarea.value.substring(start, end);
+    };
 
     var generateGuid = function() {
         var s4 = function() {
@@ -18,6 +28,20 @@ var bloggerHatenaMarkup = function () {
 
     var isShown = function(el) {
         return el.offsetWidth !== 0;
+    };
+    
+    var escapeBracket = function(str) {
+        return str.replace(/\[/g, "&#91").replace(/\]/g, "&#93").replace(/\n/, "");
+    };
+
+    var waitLoop = function(fn) {
+        var loop = function() {
+            var res = fn();
+            if (!res) {
+                setTimeout(loop, 100);
+            }
+        };
+        loop();
     };
 
     var isImageDialogShown = function() {
@@ -40,6 +64,7 @@ var bloggerHatenaMarkup = function () {
     var hatena = new Hatena({ doc: document });
     var textarea = null;
     var hatenaEditor = null;
+    var hatenaEditorLoading = null;
     var hatenaEditorCheckbox = null;
     var hatenaPreview = null;
     var hatenaLeftContainer = null;
@@ -214,10 +239,13 @@ var bloggerHatenaMarkup = function () {
         if (imaged == null) {
             return;
         }
-        console.debug(imaged);
         outputToTextarea(imaged);
         
         seePreview();
+    };
+
+    var setHatenaEditorLoading = function(isLoading) {
+        hatenaEditorLoading.style.display = isLoading ? "block" : "none";
     };
 
     var hatenaEditorToggler = (function() {
@@ -226,11 +254,13 @@ var bloggerHatenaMarkup = function () {
         var changeState = function(enable) {
             enabled = enable;
             textarea.style.height = enable ? "20%" : "80%";
+            textarea.disabled = enable;
             hatenaPreview.style.height = hatenaLeftContainer.style.height = enable ? "80%" : "20%";
             hatenaEditorCheckbox.checked = enable;
             hatenaEditor.disabled = !enable;
             if (enable) {
                 hatenaEditorToTextareaSynchronizer.start();
+                resetCursorPosition(textarea);
             } else {
                 hatenaEditorToTextareaSynchronizer.stop();
             }
@@ -302,6 +332,18 @@ var bloggerHatenaMarkup = function () {
                         BOX_SIZING
                     ].join(''));
 
+                    hatenaEditorLoading = document.createElement("div");
+                    hatenaEditorLoading.setAttribute("style", [
+                        "position: absolute;",
+                        "left: 20px;",
+                        "top: 20px;",
+                        "z-index: 10;",
+                        "display: none;",
+                        "font-weight: bold;",
+                        "font-size: 20px;",
+                    ].join(''));
+                    hatenaEditorLoading.appendChild(document.createTextNode("Loading..."));
+
                     var hatenaEditorDiv = document.createElement("div");
                     hatenaEditorDiv.setAttribute('style', [
                         "top:30px;",
@@ -311,6 +353,7 @@ var bloggerHatenaMarkup = function () {
                         BOX_SIZING
                     ].join(''));
                     hatenaEditorDiv.appendChild(hatenaEditor);
+                    hatenaEditorDiv.appendChild(hatenaEditorLoading);
 
                     return hatenaEditorDiv;
                 };
@@ -381,10 +424,89 @@ var bloggerHatenaMarkup = function () {
             ].join('\n');
             document.head.appendChild(style);
         };
+        
+        var setLinkAction = function() {
+            (function() {
+                var hlc = document.createElement("div");
+                hlc.id = "hatenaLinkContainer";
+                hlc.style.display = "none";
+                hlc.addEventListener("click", function() {
+                    setHatenaEditorLoading(false);
+                    var url = hlc.getAttribute("data-url");
+                    var title = hlc.getAttribute("data-title");
+                    showLink(url, String._escapeHTML(title));
+                });
+                document.body.appendChild(hlc);
     
+                var script = document.createElement("script");
+                script.setAttribute("type", "application/javascript");
+                script.textContent = [
+                    "function bloggerHatenaMarkup_linkCallback(j) {",
+                        "var hlc = document.getElementById('hatenaLinkContainer');",
+                        "hlc.setAttribute('data-url', j.targetUrl);",
+                        "hlc.setAttribute('data-title', j.pageTitle);",
+                        "var event = new MouseEvent('click', { 'view': window });",
+                        "hlc.dispatchEvent(event);",
+                    "}",
+                ].join("\n");
+                document.body.appendChild(script);
+
+                return hlc;
+            })();
+
+            var showLink = function(link, innerText) {
+                var text = "[" + link + ":" + escapeBracket(innerText) + "]";
+                insertTextUnderCursor(hatenaEditor, text);
+                
+                seePreview();
+            };
+            
+            var generateLinkAuto = function(url) {
+                var reqUrl = "http://www.pagesynopsis.com/pageinfo?callback=bloggerHatenaMarkup_linkCallback&" +
+                    "targetUrl=" + encodeURI(url);
+                var jsonp = document.createElement("script");
+                jsonp.setAttribute("type", "application/javascript");
+                jsonp.setAttribute("src", reqUrl);
+                document.body.appendChild(jsonp);
+                // bloggerHatenaMarkup_linkCallback will be called later
+                setHatenaEditorLoading(true);
+            };
+
+            var getLink = function() {
+                if (textarea.selectionEnd === 0) {
+                    return;
+                }
+
+                textarea.setSelectionRange(0, textarea.selectionEnd + "</a>".length);
+                var a = getSelection(textarea);
+                var c = document.createElement("div");
+                c.innerHTML = a;
+                var href = c.firstElementChild.href;
+
+                var innerText = getSelection(hatenaEditor);
+
+                if (innerText === "") {
+                    generateLinkAuto(href);
+                    return;
+                }
+
+                showLink(href, innerText);
+            };
+            
+            waitLoop(function() {
+                var link = null;
+                if (link = document.getElementById("link")) {
+                    link.addEventListener("click", getLink);
+                    return true;
+                }
+                return false;
+            });
+        };
+
         addStyles();
         addHatenaElements();
         hatenaEditorToggler.init();
+        setLinkAction();
     };
 
     var initState = stateTemplate({
@@ -428,9 +550,7 @@ var bloggerHatenaMarkup = function () {
     function seePreview() {
         hatena.parse(hatenaEditor.value);
         hatenaPreview.innerHTML = hatena.html();
-        replaceTitles();
         setTextArea();
-        fetchTitles();
     }
 
     function setTextArea() {
@@ -438,84 +558,7 @@ var bloggerHatenaMarkup = function () {
             hatenaEditor.value.replace(/-{2,}/g, 
                 function($0) {return '{{'+$0.length+' hyphens}}'}
             ) + "\nHatenaKihou-->";
-    }
-    
-    (function() {
-        var script = document.createElement('script');
-        script.textContent = [ // run in page's context. works for Greasemonkey & Chrome
-            ,"function fireMyEvent(o) {"
-                ,"if (o.error) return;"
-                ,"var url = o.query.diagnostics.url;"
-                ,"url = url.content || url[url.length - 1].content;"
-                ,"var title = o.query.results;"
-                ,"if (window.opera) {"
-                    ,"var ev = document.createEvent('Event');"
-                    ,"ev.initEvent('TitleReady', true, false);"
-                    ,"ev.url = url;"
-                    ,"ev.title = title;"
-                ,"} else {"
-                    ,"var ev = document.createEvent('MessageEvent');"
-                    ,"ev.initMessageEvent('TitleReady', true, false," // type, canBubble, cancelable
-                        ,"JSON.stringify({url: url, title: title})," // data
-                        ,"location.protocol + '//' + location.host," // origin
-                        ,"''," // lastEventId
-                        ,"window" // source
-                    ,");"
-                ,"}"
-                ,"document.dispatchEvent(ev);"
-            ,"}"
-        ].join('\n');
-        document.body.appendChild(script);
-    })();
-    
-    var URL2TITLE = {};
-    document.addEventListener('TitleReady', function(ev) {
-        var data = ev.data ? JSON.parse(ev.data) : ev;
-        URL2TITLE[data.url] = data.title || null;
-        replaceTitles();
-        setTextArea();
-    }, false);
-    
-    function replaceTitles() {
-        Array.prototype.forEach.call(
-            hatenaPreview.getElementsByTagName('a'), 
-            function(a) {
-                if (a.textContent === '{{title}}') {
-                    var title = URL2TITLE[a.href];
-                    if (title === void 0) {
-                        // title must be fetched
-                    } else if (title === null) {
-                        a.textContent = a.href;
-                    } else if (title === '') {
-                        // JSONP not loaded yet
-                    } else {
-                        a.textContent = title;
-                        var grandpa = a.parentNode.parentNode;
-                        if (/blockquote/i.test(grandpa.tagName) && 
-                            grandpa.getAttribute('title') === '{{title}}') 
-                            grandpa.setAttribute('title', title);
-                    }
-                }
-            }
-        );
-    }
-    
-    function fetchTitles() {
-        Array.prototype.forEach.call(
-            hatenaPreview.getElementsByTagName('a'), 
-            function(a) {
-                var url = a.href;
-                if (a.textContent === '{{title}}' && URL2TITLE[url] === void 0) {
-                    URL2TITLE[url] = '';
-                    var api = "http://query.yahooapis.com/v1/public/yql" +
-                        "?format=json&callback=fireMyEvent&q=select%20*%20from%20html%20where%20url%3d'" +
-                        encodeURIComponent(url) + "'%20and%20xpath%3d'%2f%2ftitle%2ftext()'";
-                    var script = document.createElement('script');
-                    script.src = api;
-                    document.body.appendChild(script);
-                }
-            }
-        );
+        resetCursorPosition(textarea);
     }
 };
 

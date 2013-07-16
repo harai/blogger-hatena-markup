@@ -145,20 +145,16 @@ Hatena = function(args){
             }
         };
         
-        var autoLink = function() {
+        var link = function() {
             // auto link (added by edvakf)
-            html = html.replace(/\[(https?:\/\/[^\]\s]+?)(:title(=[^\]\n]*)?)?\]/g, function($0,$1,$2,$3) {
-                return '<a href="' + String._escapeHTML($1) + '">' + (
-                    $3 ? String._escapeHTML($3.slice(1)) :          // title given by user
-                    $2 ? '{{title}}' : // title will be fetched (via YQL)
-                    $1                 // use URL instead of title
-                ) + '</a>';
+            html = html.replace(/\[(https?:\/\/[^\]\s]+?)(?::([^\]\n]*))?\]/g, function($0, url, str) {
+                return '<a href="' + String._escapeHTML(url) + '">' + (str ? str : url) + '</a>';
             });
         };
 
 
         footnote();
-        autoLink();
+        link();
 
         return html;
     };

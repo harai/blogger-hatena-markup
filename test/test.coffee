@@ -159,7 +159,7 @@ def
 
         it 'should parse link notation', ->
             i = """
-This project is hosted on [https://github.com/harai/blogger-hatena-markup:title=GitHub].
+This project is hosted on [https://github.com/harai/blogger-hatena-markup:GitHub].
 """
             # console.log(parse(i))
             assert.equal parse(i), """
