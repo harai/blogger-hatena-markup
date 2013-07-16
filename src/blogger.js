@@ -253,9 +253,9 @@ var bloggerHatenaMarkup = function () {
 
         var changeState = function(enable) {
             enabled = enable;
-            textarea.style.height = enable ? "20%" : "80%";
+            textarea.style.height = enable ? "10%" : "90%";
             textarea.disabled = enable;
-            hatenaPreview.style.height = hatenaLeftContainer.style.height = enable ? "80%" : "20%";
+            hatenaPreview.style.height = hatenaLeftContainer.style.height = enable ? "90%" : "10%";
             hatenaEditorCheckbox.checked = enable;
             hatenaEditor.disabled = !enable;
             if (enable) {
