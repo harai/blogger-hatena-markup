@@ -140,7 +140,7 @@ Hatena = function(args){
                     var num = notes.length;
                     note = note.replace(/<.*?>/g, "");
                     note = note.replace(/&/g, "&amp;");
-                    html += '<span class="footnote"><a href="' + p + '#f' + num + '" title="' + note + '" name="fn' + num + '">*' + num + '</a></span>' + post;
+                    html += '<span class="footnote"><a href="#f' + num + '" title="' + note + '" name="fn' + num + '">*' + num + '</a></span>' + post;
                 }
             }
         };
@@ -161,11 +161,8 @@ Hatena = function(args){
 
     this.self = {
         html : '',
-        baseuri : args["baseuri"],
-        permalink : args["permalink"] || "",
         ilevel : args["ilevel"] || 0,
         invalidnode : args["invalidnode"] || [],
-        sectionanchor : args["sectionanchor"] || 'o-',
         beforeFilter : beforeFilter,
         afterFilter : afterFilter,
     };
@@ -174,10 +171,7 @@ Hatena.prototype = {
     parse : function(text){
         this.self.context = new Hatena_Context({
             text : text || "",
-            baseuri : this.self.baseuri,
-            permalink : this.self.permalink,
             invalidnode : this.self.invalidnode,
-            sectionanchor : this.self.sectionanchor,
             beforeFilter : this.self.beforeFilter,
             afterFilter : this.self.afterFilter,
         });
@@ -226,10 +220,7 @@ Hatena.prototype = {
 Hatena_Context = function(args){
     this.self = {
         text : args["text"],
-        baseuri : args["baseuri"],
-        permalink : args["permalink"],
         invalidnode : args["invalidnode"],
-        sectionanchor : args["sectionanchor"],
         beforeFilter : args["beforeFilter"],
         afterFilter : args["afterFilter"],
         _htmllines : [],
@@ -427,7 +418,6 @@ Hatena_FootnoteNode.prototype = Object.extend(new Hatena_Node(), {
         var c = this.self["context"];
         if(c.self.footnotes == null || c.self.footnotes.length == 0) return;
         var t = String.times("    ", this.self["ilevel"]);
-        var p = c.self.permalink;
         this.self["html"] = '';
 
         this.self.html += t + '<div class="footnote">\n';
@@ -438,7 +428,7 @@ Hatena_FootnoteNode.prototype = Object.extend(new Hatena_Node(), {
             var note = c.self.footnotes[i];
             num++;
             text.parse(note);
-            var l = t + '    <p class="footnote"><a href="' + p + '#fn' + num + '" name="f' + num + '">*' + num + '</a>: '
+            var l = t + '    <p class="footnote"><a href="#fn' + num + '" name="f' + num + '">*' + num + '</a>: '
                 + text.html() + '</p>';
             this.self["html"] += l + "\n";
         }
@@ -678,11 +668,8 @@ Hatena_SectionNode.prototype = Object.extend(new Hatena_Node(), {
             context : c,
             ilevel : this.self.ilevel + 1
         };
-        var invalid = Array();
-        if(c.self.invalidnode) invalid[c.self.invalidnode] = Array();
         for(var i = 0; i <  this.self.childnode.length; i++) {
             var node = this.self.childnode[i];
-            if(invalid[node]) continue;
             var mod = 'Hatena_' + node.charAt(0).toUpperCase() + node.substr(1).toLowerCase() + 'Node';
             var n = eval("new "+ mod +"()");
             n._new(nodeoption);
