@@ -136,7 +136,6 @@ Hatena = function(args){
 
     this.self = {
         html : '',
-        ilevel : args["ilevel"] || 0,
         beforeFilter : beforeFilter,
         afterFilter : afterFilter,
     };
@@ -149,25 +148,17 @@ Hatena.prototype = {
         this.self.beforeFilter(c);
 
         var node = new Hatena_BodyNode();
-        node._new({
-            context: c,
-            ilevel: this.self.ilevel
-        });
+        node._new({ context: c });
         node.parse();
 
         this.self.afterFilter(c);
 
-        this.self.html = c.html();
         if (this.self.context.footnotes().length != 0) {
             var node = new Hatena_FootnoteNode();
-            node._new({
-                context : this.self.context,
-                ilevel : this.self.ilevel
-            });
+            node._new({ context : c });
             node.parse();
-            this.self.html += "\n";
-            this.self.html += node.self.html;
         }
+        this.self.html = c.html();
     }, 
 
     html : function(){
@@ -183,30 +174,29 @@ Hatena_Context = function(args){
         footnotes : [],
         noparagraph : 0,
         aliases: {},
+        indent: 0,
+        indentStr: "    ",
     };
     this.init();
 };
 Hatena_Context.prototype = {
-    init : function() {
-        // this.text(this.self.text);
-        this.self.text = this.self.text.replace(/\r/g, "");
-        this.self.lines = this.self.text.split('\n');
-        this.self.index = -1;
+    init: function() {
+        this.text(this.self.text);
     },
 
-    hasNext : function() {
+    hasNext: function() {
         return (this.self.lines != null && this.self.lines.length - 1 > this.self.index);
     },
 
-    peek : function() {
+    peek: function() {
         return this.self.lines[this.self.index + 1];
     },
 
-    next : function() {
+    next: function() {
         return this.self.lines[++this.self.index];
     },
 
-    text : function(text) {
+    text: function(text) {
         if (text == null) {
             return this.self.text;
         }
@@ -215,28 +205,32 @@ Hatena_Context.prototype = {
         this.self.index = -1;
     },
 
-    html : function(html) {
+    html: function(html) {
         if (html != null) {
             this.self._htmllines = html.split("\n");
         }
         return this.self._htmllines.join ("\n");
     },
 
-    htmllines : function(line) {
-        if(line != null) this.self._htmllines.push(line);
-        return this.self._htmllines;
+    putLine: function(line) {
+        var iStr = String.times(this.self.indentStr, this.self.indent);
+        this.self._htmllines.push(iStr + line);
     },
 
-    lasthtmlline : function() {
+    putLineWithoutIndent: function(line) {
+        this.self._htmllines.push(line);
+    },
+
+    getLastPut: function() {
         return this.self._htmllines[this.self._htmllines.length - 1];
     },
 
-    footnotes : function(line) {
+    footnotes: function(line) {
         if(line != null) this.self.footnotes.push(line);
         return this.self.footnotes;
     },
 
-    noparagraph : function(noparagraph) {
+    noparagraph: function(noparagraph) {
         if(noparagraph != null) this.self.noparagraph = noparagraph;
         return this.self.noparagraph;
     },
@@ -246,6 +240,14 @@ Hatena_Context.prototype = {
             this.self.aliases[id] =  { url: url };
         }
         return this.self.aliases[id];
+    },
+
+    indent: function(f, num) {
+        var n = (num == null) ? 1 : num;
+        this.self.indent += n;
+        var res = f();
+        this.self.indent -= n;
+        return res;
     }
 };
 
@@ -259,7 +261,6 @@ Hatena_Node.prototype = {
         if(args == null) args = Array();
         this.self = {
             context : args["context"],
-            ilevel : args["ilevel"],
             html : ''
         };
         this.init();
@@ -282,10 +283,7 @@ Hatena_BodyNode.prototype = Object.extend(new Hatena_Node(), {
         var c = this.self.context;
         while (this.self.context.hasNext()) {
             var node = new Hatena_SectionNode();
-            node._new({
-                context : c,
-                ilevel : this.self.ilevel
-            });
+            node._new({ context: c });
             node.parse();
         }
     }
@@ -297,12 +295,14 @@ Hatena_BrNode.prototype = Object.extend(new Hatena_Node(), {
     parse : function(){
         var c = this.self.context;
         var l = c.next();
-        if(l.length != 0) return;
-        var t = String.times("    ", this.self.ilevel);
-        if (c.lasthtmlline() == t + "<br>" || c.lasthtmlline() == t) {
-            c.htmllines(t + "<br>");
+        if (l.length != 0) {
+            return;
+        }
+        var t = String.times(c.indentStr, c.indent);
+        if (c.getLastPut() == t + "<br>" || c.getLastPut() == t) {
+            c.putLine("<br>");
         } else {
-            c.htmllines(t);
+            c.putLine("");
         }
     }
 });
@@ -312,13 +312,12 @@ Hatena_CDataNode = function(){};
 Hatena_CDataNode.prototype = Object.extend(new Hatena_Node(), {
     parse : function(){
         var c = this.self.context;
-        var t = String.times("    ", this.self.ilevel);
         var l = c.next();
         var text = new Hatena_Text();
         text._new({context : c});
         text.parse(l);
         l = text.html();
-        c.htmllines(t + l);
+        c.putLine(l);
     }
 });
 
@@ -334,16 +333,17 @@ Hatena_DlNode.prototype = Object.extend(new Hatena_Node(), {
         var l = c.peek();
         if(!l.match(this.self.pattern)) return;
         this.self.llevel = RegExp.$1.length;
-        var t = String.times("    ", this.self.ilevel);
 
-        c.htmllines(t + "<dl>");
-        while (l = c.peek()) {
-            if(!l.match(this.self.pattern)) break;
-            c.next();
-            c.htmllines(t + "    <dt>" + RegExp.$1 + "</dt>");
-            c.htmllines(t + "    <dd>" + RegExp.$2 + "</dd>");
-        }
-        c.htmllines(t + "</dl>");
+        c.putLine("<dl>");
+        c.indent(function() {
+            while (l = c.peek()) {
+                if(!l.match(this.self.pattern)) break;
+                c.next();
+                c.putLine("<dt>" + RegExp.$1 + "</dt>");
+                c.putLine("<dd>" + RegExp.$2 + "</dd>");
+            }
+        });
+        c.putLine("</dl>");
     }
 });
 
@@ -353,24 +353,26 @@ Hatena_FootnoteNode.prototype = Object.extend(new Hatena_Node(), {
     html : "",
 
     parse : function(){
-        var c = this.self["context"];
-        if(c.self.footnotes == null || c.self.footnotes.length == 0) return;
-        var t = String.times("    ", this.self["ilevel"]);
-        this.self["html"] = '';
+        var c = this.self.context;
+        if (c.footnotes().length == 0) {
+            return;
+        }
 
-        this.self.html += t + '<div class="footnote">\n';
+        c.putLine('<div class="footnote">');
         var num = 0;
         var text = new Hatena_Text();
-        text._new({context : c});
-        for(var i = 0; i < c.self.footnotes.length; i++) {
-            var note = c.self.footnotes[i];
-            num++;
-            text.parse(note);
-            var l = t + '    <p class="footnote"><a href="#fn' + num + '" name="f' + num + '">*' + num + '</a>: '
-                + text.html() + '</p>';
-            this.self["html"] += l + "\n";
-        }
-        this.self["html"] += t + '</div>\n';
+        text._new({ context: c });
+        c.indent(function() {
+            for (var i = 0; i < c.self.footnotes.length; i++) {
+                var note = c.self.footnotes[i];
+                num++;
+                text.parse(note);
+                var l = '<p class="footnote"><a href="#fn' + num + '" name="f' + num + '">*' + num + '</a>: '
+                    + text.html() + '</p>';
+                c.putLine(l);
+            }
+        });
+        c.putLine('</div>');
     }
 });
 
@@ -384,10 +386,13 @@ Hatena_H4Node.prototype = Object.extend(new Hatena_Node(), {
     parse : function(){
         var c = this.self.context;
         var l = c.next();
-        if(l == null) return;
-        if(!l.match(this.self.pattern)) return;
-        var t = String.times("    ", this.self.ilevel);
-        c.htmllines(t + "<h4>" + RegExp.$1 + "</h4>");
+        if (l == null) {
+            return;
+        }
+        if (!l.match(this.self.pattern)) {
+            return;
+        }
+        c.putLine("<h4>" + RegExp.$1 + "</h4>");
     }
 });
 
@@ -401,10 +406,13 @@ Hatena_H5Node.prototype = Object.extend(new Hatena_Node(), {
     parse : function(){
         var c = this.self.context;
         var l = c.next();
-        if(l == null) return;
-        if(!l.match(this.self.pattern)) return;
-        var t = String.times("    ", this.self.ilevel);
-        c.htmllines(t + "<h5>" + RegExp.$1 + "</h5>");
+        if (l == null) {
+            return;
+        }
+        if (!l.match(this.self.pattern)) {
+            return;
+        }
+        c.putLine("<h5>" + RegExp.$1 + "</h5>");
     }
 });
 
@@ -418,10 +426,13 @@ Hatena_H6Node.prototype = Object.extend(new Hatena_Node(), {
     parse : function(){
         var c = this.self.context;
         var l = c.next();
-        if(l == null) return;
-        if(!l.match(this.self.pattern)) return;
-        var t = String.times("    ", this.self.ilevel);
-        c.htmllines(t + "<h6>" + RegExp.$1 + "</h6>");
+        if (l == null) {
+            return;
+        }
+        if (!l.match(this.self.pattern)) {
+            return;
+        }
+        c.putLine("<h6>" + RegExp.$1 + "</h6>");
     }
 });
 
@@ -433,33 +444,32 @@ Hatena_ListNode.prototype = Object.extend(new Hatena_Node(), {
     },
 
     parse : function(){
-        var c = this.self.context;
+        var _self = this.self;
+        var c = _self.context;
         var l = c.peek();
-        if(!l.match(this.self.pattern)) return;
-        this.self.llevel = RegExp.$1.length;
-        var t = String.times("    ", this.self.ilevel + this.self.llevel - 1);
-        this.self.type = RegExp.$1.substr(0, 1) == '-' ? 'ul' : 'ol';
+        if(!l.match(_self.pattern)) return;
+        _self.llevel = RegExp.$1.length;
+        _self.type = RegExp.$1.substr(0, 1) == '-' ? 'ul' : 'ol';
 
-        c.htmllines(t + "<" + this.self.type + ">");
-        while (l = c.peek()) {
-            if(!l.match(this.self.pattern)) break;
-            if (RegExp.$1.length > this.self.llevel) {
-                //c.htmllines(t + "    <li>"); bug??
-                var node = new Hatena_ListNode();
-                node._new({
-                    context : this.self.context,
-                    ilevel : this.self.ilevel
-                });
-                node.parse();
-                //c.htmllines(t + "    </li>"); bug??
-            } else if(RegExp.$1.length < this.self.llevel) {
-                break;
-            } else {
-                l = c.next();
-                c.htmllines(t + "    <li>" + RegExp.$2 + "</li>");
-            }
-        }
-        c.htmllines(t + "</" + this.self.type + ">");
+        c.indent(function() {
+            c.putLine("<" + _self.type + ">");
+                while (l = c.peek()) {
+                    if(!l.match(_self.pattern)) break;
+                    if (RegExp.$1.length > _self.llevel) {
+                        var node = new Hatena_ListNode();
+                        node._new({ context : _self.context });
+                        node.parse();
+                    } else if(RegExp.$1.length < _self.llevel) {
+                        break;
+                    } else {
+                        l = c.next();
+                        c.indent(function() {
+                            c.putLine("<li>" + RegExp.$2 + "</li>");
+                        });
+                    }
+                }
+            c.putLine("</" + _self.type + ">");
+        }, _self.llevel - 1);
     }
 });
 
@@ -468,63 +478,60 @@ Hatena_PNode = function(){};
 Hatena_PNode.prototype = Object.extend(new Hatena_Node(), {
     parse :function(){
         var c = this.self.context;
-        var t = String.times("    ", this.self.ilevel);
         var l = c.next();
         var text = new Hatena_Text();
         text._new({context : c});
         text.parse(l);
-        l = text.html();
-        c.htmllines(t + "<p>" + l + "</p>");
+        c.putLine("<p>" + text.html() + "</p>");
     }
 });
 
 
 Hatena_PreNode = function(){};
 Hatena_PreNode.prototype = Object.extend(new Hatena_Node(), {
-    init :function(){
+    init: function(){
         this.self.pattern = /^>\|$/;
         this.self.endpattern = /(.*)\|<$/;
         this.self.startstring = "<pre>"; // TODO add <code> and </code>
         this.self.endstring = "</pre>";
     },
 
-    parse : function(){ // modified by edvakf
+    parse: function(){ // modified by edvakf
         var c = this.self.context;
+        var ss = this.self.startstring;
         var m;
         if(!(m = c.peek().match(this.self.pattern))) return;
         c.next();
-        var t = String.times("    ", this.self.ilevel);
-        c.htmllines(t + (m[1] ? 
-            // add class for syntax highlight
-            this.self.startstring.replace('>',' class="prettyprint ' + m[1] + '">') :
-            this.self.startstring));
+        c.putLine(m[1] ? ss.replace('>',' class="prettyprint ' + m[1] + '">') : ss);
         var x = '';
         while (c.hasNext()) {
             var l = c.peek();
             if (l.match(this.self.endpattern)) {
-                var x = RegExp.$1;
+                x = RegExp.$1;
                 c.next();
                 break;
             }
-            c.htmllines(this.escape_pre(c.next()));
+            c.putLineWithoutIndent(this.escape_pre(c.next()));
         }
-        c.htmllines(x + this.self.endstring);
+        c.putLineWithoutIndent(x + this.self.endstring);
     },
 
-    escape_pre : function(text){ return text; }
+    escape_pre: function(text) {
+        return text;
+    }
 });
 
 
 Hatena_SuperpreNode = function(){};
 Hatena_SuperpreNode.prototype = Object.extend(new Hatena_PreNode(), {
-    init : function(){
+    init: function() {
         this.self.pattern = /^>\|(\S*)\|$/; // modified by edvakf
         this.self.endpattern = /^\|\|<$/;
         this.self.startstring = "<pre>";
         this.self.endstring = "</pre>";
     },
 
-    escape_pre : function(s){
+    escape_pre: function(s) {
         return String._escapeHTML(s);
     }
 });
@@ -537,29 +544,38 @@ Hatena_TableNode.prototype = Object.extend(new Hatena_Node(), {
     },
 
     parse : function(s){
-        var c = this.self.context;
+        var _self = this.self;
+        var c = _self.context;
         var l = c.peek();
-        if(!l.match(this.self.pattern)) return;
-        var t = String.times("    ", this.self.ilevel);
-
-        c.htmllines(t + "<table>");
-        while (l = c.peek()) {
-            if(!l.match(this.self.pattern)) break;
-            l = c.next();
-            c.htmllines(t + "    <tr>");
-            var td = l.split("|");
-            td.pop(); td.shift();
-            for (var i = 0; i < td.length; i++) {
-                var item = td[i];
-                if (item.match(/^\*(.*)/)) {
-                    c.htmllines(t + "        <th>" + RegExp.$1 + "</th>");
-                } else {
-                    c.htmllines(t + "        <td>" + item + "</td>");
-                }
-            }
-            c.htmllines(t + "    </tr>");
+        if (!l.match(_self.pattern)) {
+            return;
         }
-        c.htmllines(t + "</table>");
+
+        c.putLine("<table>");
+        c.indent(function() {
+            while (l = c.peek()) {
+                if (!l.match(_self.pattern)) {
+                    break;
+                }
+                l = c.next();
+                c.putLine("<tr>");
+                var td = l.split("|");
+                td.pop();
+                td.shift();
+                c.indent(function() {
+                    for (var i = 0; i < td.length; i++) {
+                        var item = td[i];
+                        if (item.match(/^\*(.*)/)) {
+                            c.putLine("<th>" + RegExp.$1 + "</th>");
+                        } else {
+                            c.putLine("<td>" + item + "</td>");
+                        }
+                    }
+                });
+                c.putLine("</tr>");
+            }
+        });
+        c.putLine("</table>");
     }
 });
 
@@ -574,62 +590,65 @@ Hatena_SectionNode.prototype = Object.extend(new Hatena_Node(), {
     },
 
     parse : function(){
-        var c = this.self.context;
-        var t = String.times("    ", this.self.ilevel);
-        this._set_child_node_refs();
-        c.htmllines(t + this.self.startstring);
-        while (c.hasNext()) {
-            var l = c.peek();
-            var node = this._findnode(l);
-            if(node == null) return;
-            // TODO: ref == instanceof ???
-            //if (ref(node) eq 'Hatena_H3Node') {
-            //  if(this.self.started++) break;
-            //}
-            node.parse();
-        }
-        c.htmllines(t + this.self.endstring);
+        var _this = this;
+        var c = _this.self.context;
+        _this._set_child_node_refs();
+        c.putLine(_this.self.startstring);
+        c.indent(function() {
+            while (c.hasNext()) {
+                var l = c.peek();
+                var node = _this._findnode(l);
+                if(node == null) return;
+                // TODO: ref == instanceof ???
+                //if (ref(node) eq 'Hatena_H3Node') {
+                //  if(this.self.started++) break;
+                //}
+                node.parse();
+            }
+        });
+        c.putLine(_this.self.endstring);
     },
 
     _set_child_node_refs : function(){
-        var c = this.self.context;
-        var nodeoption = {
-            context : c,
-            ilevel : this.self.ilevel + 1
-        };
-        for(var i = 0; i <  this.self.childnode.length; i++) {
-            var node = this.self.childnode[i];
-            var mod = 'Hatena_' + node.charAt(0).toUpperCase() + node.substr(1).toLowerCase() + 'Node';
-            var n = eval("new "+ mod +"()");
-            n._new(nodeoption);
-            this.self.child_node_refs.push(n);
-        }
+        var _self = this.self;
+        var c = _self.context;
+        c.indent(function() {
+            for(var i = 0; i < _self.childnode.length; i++) {
+                var node = _self.childnode[i];
+                var mod = 'Hatena_' + node.charAt(0).toUpperCase() + node.substr(1).toLowerCase() + 'Node';
+                var n = eval("new "+ mod +"()");
+                n._new({ context: c });
+                _self.child_node_refs.push(n);
+            }
+        });
     },
 
     _findnode : function(l){
-        for(var i = 0; i < this.self.child_node_refs.length; i++) {
-            var node = this.self.child_node_refs[i];
+        var _self = this.self;
+        var c = _self.context;
+
+        for (var i = 0; i < _self.child_node_refs.length; i++) {
+            var node = _self.child_node_refs[i];
             var pat = node.self.pattern;
-            if(pat == null) continue;
+            if (pat == null) {
+                continue;
+            }
             if (l.match(pat)) {
                 return node;
             }
         }
-        var nodeoption = {
-            context : this.self.context,
-            ilevel : this.self.ilevel + 1
-        };
+        
         if (l.length == 0) {
-            var node = new Hatena_BrNode(nodeoption);
-            node._new(nodeoption);
+            var node = new Hatena_BrNode({ context: c });
+            node._new({ context: c });
             return node;
-        } else if (this.self.context.noparagraph()) {
+        } else if (c.noparagraph()) {
             var node = new Hatena_CDataNode();
-            node._new(nodeoption);
+            node._new({ context: c });
             return node;
         } else {
             var node = new Hatena_PNode;
-            node._new(nodeoption);
+            node._new({ context: c });
             return node;
         }
     }
@@ -649,33 +668,35 @@ Hatena_BlockquoteNode.prototype = Object.extend(new Hatena_SectionNode(), {
     },
 
     parse : function(){
-        var c = this.self.context;
+        var _this = this;
+        var c = _this.self.context;
         var m;
-        if(!(m = c.peek().match(this.self.pattern))) return;
+        if(!(m = c.peek().match(_this.self.pattern))) return;
         if (m[1]) { // m[1] is the url (added by edvakf)
             var title = String._escapeHTML(m[3] ? m[3].substr(1) : // if title given, then use it
                 m[2] ? '{{title}}' :  // else if title not given, fetch from YQL
                 m[1]);                // else, use URL
-            this.self.startstring = this.self.startstring.replace('>', ' cite="' + m[1] + '" title="' + title + '">');
+            _this.self.startstring = _this.self.startstring.replace('>', ' cite="' + m[1] + '" title="' + title + '">');
             var cite = '<cite><a href="' + m[1] + '">' + title + '</a></cite>';
         } else {
             var cite = '';
         }
         c.next();
-        var t = String.times("    ", this.self.ilevel);
-        this._set_child_node_refs();
-        c.htmllines(t + this.self.startstring);
-        while (c.hasNext()) {
-            var l = c.peek();
-            if (l.match(this.self.endpattern)) {
-                c.next();
-                break;
+        _this._set_child_node_refs();
+        c.putLine(_this.self.startstring);
+        c.indent(function() {
+            while (c.hasNext()) {
+                var l = c.peek();
+                if (l.match(_this.self.endpattern)) {
+                    c.next();
+                    break;
+                }
+                var node = _this._findnode(l);
+                if(node == null) break;
+                node.parse();
             }
-            var node = this._findnode(l);
-            if(node == null) break;
-            node.parse();
-        }
-        c.htmllines(t + cite + this.self.endstring);
+        });
+        c.putLine(cite + _this.self.endstring);
     }
 });
 
@@ -691,25 +712,26 @@ Hatena_TagNode.prototype = Object.extend(new Hatena_SectionNode(), {
 
     parse : function(){
         var c = this.self.context;
-        var t = String.times("    ", this.self.ilevel);
         if(!c.peek().match(this.self.pattern)) return;
         c.next();
         c.noparagraph(1);
         this._set_child_node_refs();
-        var x =this._parse_text(RegExp.$1);
-        c.htmllines(t + x);
-        while (c.hasNext()) {
-            var l = c.peek();
-            if (l.match(this.self.endpattern)) {
-                c.next();
-                x = this._parse_text(RegExp.$1);
-                c.htmllines(t + x);
-                break;
+        var x = this._parse_text(RegExp.$1);
+        c.putLine(x);
+        c.indent(function() {
+            while (c.hasNext()) {
+                var l = c.peek();
+                if (l.match(this.self.endpattern)) {
+                    c.next();
+                    x = this._parse_text(RegExp.$1);
+                    c.putLine(x);
+                    break;
+                }
+                var node = this._findnode(l);
+                if(node == null) break;
+                node.parse();
             }
-            var node = this._findnode(l);
-            if(node == null) break;
-            node.parse();
-        }
+        });
         c.noparagraph(0);
     },
 
@@ -731,10 +753,9 @@ Hatena_TaglineNode.prototype = Object.extend(new Hatena_SectionNode(), {
 
     parse : function(){
         var c = this.self.context;
-        var t = String.times("    ", this.self.ilevel);
         if(!c.peek().match(this.self.pattern)) return;
         c.next();
-        c.htmllines(t + RegExp.$1);
+        c.putLine(RegExp.$1);
     }
 });
 

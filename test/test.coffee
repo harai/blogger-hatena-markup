@@ -57,7 +57,6 @@ describe 'Hatena', ->
 <div class="footnote">
     <p class="footnote"><a href="#fn1" name="f1">*1</a>: Windows 版 IE6 および Firefox 1.0 でのみ確認しています</p>
 </div>
-
 """
 
         it 'should parse minus list notation', ->
