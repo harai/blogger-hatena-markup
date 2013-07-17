@@ -8,7 +8,7 @@ var bloggerHatenaMarkup = function () {
             sOldText.substring(nSelEnd);
         textarea.setSelectionRange(nSelStart + sStartTag.length, nSelEnd + sStartTag.length);
         textarea.focus();
-    }
+    };
 
     var insertTextUnderCursor = function(textarea, text) {
         var nSelStart = textarea.selectionStart;
