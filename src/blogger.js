@@ -1,4 +1,15 @@
 var bloggerHatenaMarkup = function () {
+    var insertTag = function(textarea, sStartTag, sEndTag) {
+        var nSelStart = textarea.selectionStart;
+        var nSelEnd = textarea.selectionEnd;
+        var sOldText = textarea.value;
+        textarea.value = sOldText.substring(0, nSelStart) +
+            sStartTag + sOldText.substring(nSelStart, nSelEnd) + sEndTag +
+            sOldText.substring(nSelEnd);
+        textarea.setSelectionRange(nSelStart + sStartTag.length, nSelEnd + sStartTag.length);
+        textarea.focus();
+    }
+
     var insertTextUnderCursor = function(textarea, text) {
         var nSelStart = textarea.selectionStart;
         var nSelEnd = textarea.selectionEnd;
@@ -462,7 +473,6 @@ var bloggerHatenaMarkup = function () {
 ,"#hatenaPreview :link,#hatenaPreview :visited{text-decoration:underline;}"
 ,"#hatenaPreview :focus{outline:thin dotted invert;}"
 ,"#hatenaPreview figure{display:block;margin-top:1em;margin-bottom:1em;margin-left:40px;margin-right:40px;}"
-                ,"}"
             ].join('\n');
             document.head.appendChild(style);
         };
@@ -545,10 +555,34 @@ var bloggerHatenaMarkup = function () {
             });
         };
 
+        var setDecoratorTagsAction = function() {
+            var tags = [
+                { id: "bold", sTag: "<strong>", eTag: "</strong>" },
+                { id: "italic", sTag: "<i>", eTag: "</i>" },
+                { id: "strikeThrough", sTag: "<strike>", eTag: "</strike>" },
+                { id: "BLOCKQUOTE", sTag: "\n>>\n", eTag: "\n<<\n" }
+            ];
+
+            tags.forEach(function(tag) {
+                waitLoop(function() {
+                    var el = null;
+                    if (el = document.getElementById(tag.id)) {
+                        el.addEventListener("click", function() {
+                            insertTag(hatenaEditor, tag.sTag, tag.eTag);
+                            seePreview();
+                        });
+                        return true;
+                    }
+                    return false;
+                });
+            });
+        };
+
         addStyles();
         addHatenaElements();
         hatenaEditorToggler.init();
         setLinkAction();
+        setDecoratorTagsAction();
     };
 
     var initState = stateTemplate({
