@@ -185,7 +185,7 @@ var bloggerHatenaMarkup = function () {
         var extractImageData = function() {
             var addedHtml = textarea.value.substr(0, textarea.selectionStart);
             if (addedHtml.length === 0) {
-                return null
+                return null;
             }
             var d = document.createElement("div");
             d.innerHTML = addedHtml;

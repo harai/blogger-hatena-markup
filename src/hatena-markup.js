@@ -135,7 +135,6 @@ Hatena = function(args){
     };
 
     this.self = {
-        html : '',
         beforeFilter : beforeFilter,
         afterFilter : afterFilter,
     };
@@ -254,14 +253,12 @@ Hatena_Context.prototype = {
 
 Hatena_Node = function(){}
 Hatena_Node.prototype = {
-    html : "", 
     pattern : "",
 
     _new : function(args){
         if(args == null) args = Array();
         this.self = {
             context : args["context"],
-            html : ''
         };
         this.init();
     },
@@ -312,12 +309,7 @@ Hatena_CDataNode = function(){};
 Hatena_CDataNode.prototype = Object.extend(new Hatena_Node(), {
     parse : function(){
         var c = this.self.context;
-        var l = c.next();
-        var text = new Hatena_Text();
-        text._new({context : c});
-        text.parse(l);
-        l = text.html();
-        c.putLine(l);
+        c.putLine(c.next());
     }
 });
 
@@ -350,8 +342,6 @@ Hatena_DlNode.prototype = Object.extend(new Hatena_Node(), {
 
 Hatena_FootnoteNode = function(){};
 Hatena_FootnoteNode.prototype = Object.extend(new Hatena_Node(), {
-    html : "",
-
     parse : function(){
         var c = this.self.context;
         if (c.footnotes().length == 0) {
@@ -359,16 +349,11 @@ Hatena_FootnoteNode.prototype = Object.extend(new Hatena_Node(), {
         }
 
         c.putLine('<div class="footnote">');
-        var num = 0;
-        var text = new Hatena_Text();
-        text._new({ context: c });
         c.indent(function() {
             for (var i = 0; i < c.self.footnotes.length; i++) {
-                var note = c.self.footnotes[i];
-                num++;
-                text.parse(note);
-                var l = '<p class="footnote"><a href="#fn' + num + '" name="f' + num + '">*' + num + '</a>: '
-                    + text.html() + '</p>';
+                var n = i + 1;
+                var l = '<p class="footnote"><a href="#fn' + n + '" name="f' + n + '">*' +
+                    n + '</a>: ' + c.self.footnotes[i] + '</p>';
                 c.putLine(l);
             }
         });
@@ -478,11 +463,7 @@ Hatena_PNode = function(){};
 Hatena_PNode.prototype = Object.extend(new Hatena_Node(), {
     parse :function(){
         var c = this.self.context;
-        var l = c.next();
-        var text = new Hatena_Text();
-        text._new({context : c});
-        text.parse(l);
-        c.putLine("<p>" + text.html() + "</p>");
+        c.putLine("<p>" + c.next() + "</p>");
     }
 });
 
@@ -716,15 +697,13 @@ Hatena_TagNode.prototype = Object.extend(new Hatena_SectionNode(), {
         c.next();
         c.noparagraph(1);
         this._set_child_node_refs();
-        var x = this._parse_text(RegExp.$1);
-        c.putLine(x);
+        c.putLine(RegExp.$1);
         c.indent(function() {
             while (c.hasNext()) {
                 var l = c.peek();
                 if (l.match(this.self.endpattern)) {
                     c.next();
-                    x = this._parse_text(RegExp.$1);
-                    c.putLine(x);
+                    c.putLine(RegExp.$1);
                     break;
                 }
                 var node = this._findnode(l);
@@ -733,13 +712,6 @@ Hatena_TagNode.prototype = Object.extend(new Hatena_SectionNode(), {
             }
         });
         c.noparagraph(0);
-    },
-
-    _parse_text : function(l){
-        var text = new Hatena_Text();
-        text._new({context : this.self.context});
-        text.parse(l);
-        return text.html();
     }
 });
 
@@ -758,28 +730,3 @@ Hatena_TaglineNode.prototype = Object.extend(new Hatena_SectionNode(), {
         c.putLine(RegExp.$1);
     }
 });
-
-
-Hatena_Text = function(){};
-Hatena_Text.prototype = {
-    _new : function(args){
-        this.self = {
-            context : args["context"],
-            html : ''
-        };
-    },
-
-    parse : function(text){
-        this.self.html = '';
-        if(text == null) return;
-        this.self.html = text;
-    },
-
-    html : function(){return this.self.html;}
-};
-
-
-/*var h = new Hatena();
-h.parse("hoge((a))aaa))aaaa\n><a>hoge</a><aaa");
-WScript.echo(h.html());
-*/
