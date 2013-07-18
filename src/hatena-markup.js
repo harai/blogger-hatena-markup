@@ -22,6 +22,13 @@ String._escapeHTML = function(s){
     return s;
 };
 
+String._escapeInsidePre = function(s){
+    s = s.replace(/\&/g, "&amp;");
+    s = s.replace(/</g, "&lt;");
+    s = s.replace(/>/g, "&gt;");
+    return s;
+};
+
 String._unescapeHTML = function(s){
     s = s.replace(/&amp;/g, "&");
     s = s.replace(/&lt;/g, "<");
@@ -303,7 +310,7 @@ Hatena_BrNode.prototype = Object.extend(new Hatena_Node(), {
         if (c.getLastPut() == t + "<br>" || c.getLastPut() == t) {
             c.putLine("<br>");
         } else {
-            c.putLine("");
+            c.putLineWithoutIndent("");
         }
     }
 });
@@ -325,15 +332,19 @@ Hatena_DlNode.prototype = Object.extend(new Hatena_Node(), {
     },
 
     parse : function(){
-        var c = this.self.context;
+        var _self = this.self;
+        var c = _self.context;
         var l = c.peek();
-        if(!l.match(this.self.pattern)) return;
-        this.self.llevel = RegExp.$1.length;
+        if (!l.match(_self.pattern)) {
+            return;
+        }
 
         c.putLine("<dl>");
         c.indent(function() {
             while (l = c.peek()) {
-                if(!l.match(this.self.pattern)) break;
+                if (!l.match(_self.pattern)) {
+                    break;
+                }
                 c.next();
                 c.putLine("<dt>" + RegExp.$1 + "</dt>");
                 c.putLine("<dd>" + RegExp.$2 + "</dd>");
@@ -436,30 +447,42 @@ Hatena_ListNode.prototype = Object.extend(new Hatena_Node(), {
     parse : function(){
         var _self = this.self;
         var c = _self.context;
-        var l = c.peek();
-        if(!l.match(_self.pattern)) return;
-        _self.llevel = RegExp.$1.length;
-        _self.type = RegExp.$1.substr(0, 1) == '-' ? 'ul' : 'ol';
+        if (!c.peek().match(_self.pattern)) {
+            return;
+        }
+        var llevel = RegExp.$1.length;
+        var listType = RegExp.$1.substr(0, 1) == '-' ? 'ul' : 'ol';
 
+        c.putLine("<" + listType + ">");
+        var l;
         c.indent(function() {
-            c.putLine("<" + _self.type + ">");
-                while (l = c.peek()) {
-                    if(!l.match(_self.pattern)) break;
-                    if (RegExp.$1.length > _self.llevel) {
+            while (l = c.peek()) {
+                var m;
+                if (!(m = l.match(_self.pattern))) {
+                    break;
+                }
+                if (m[1].length > llevel) {
+                    c.indent(function() {
                         var node = new Hatena_ListNode();
-                        node._new({ context : _self.context });
+                        node._new({ context : c });
                         node.parse();
-                    } else if(RegExp.$1.length < _self.llevel) {
-                        break;
+                    });
+                    c.putLine("</li>");
+                } else if (m[1].length < llevel) {
+                    break;
+                } else {
+                    c.next();
+                    var entry = m[2];
+                    var l2, m2;
+                    if ((l2 = c.peek()) && (m2 = l2.match(_self.pattern)) && m2[1].length > llevel) {
+                        c.putLine("<li>" + m[2]);
                     } else {
-                        l = c.next();
-                        c.indent(function() {
-                            c.putLine("<li>" + RegExp.$2 + "</li>");
-                        });
+                        c.putLine("<li>" + m[2] + "</li>");
                     }
                 }
-            c.putLine("</" + _self.type + ">");
-        }, _self.llevel - 1);
+            }
+        });
+        c.putLine("</" + listType + ">");
     }
 });
 
@@ -518,7 +541,7 @@ Hatena_SuperpreNode.prototype = Object.extend(new Hatena_PreNode(), {
     },
 
     escape_pre: function(s) {
-        return String._escapeHTML(s);
+        return String._escapeInsidePre(s);
     }
 });
 
@@ -645,7 +668,7 @@ Hatena_SectionNode.prototype = Object.extend(new Hatena_Node(), {
 Hatena_BlockquoteNode = function(){};
 Hatena_BlockquoteNode.prototype = Object.extend(new Hatena_SectionNode(), {
     init : function(){
-        this.self.pattern = /^>(?:(https?:\/\/.*?)(:title(=.+)?)?)?>$/; // modified by edvakf
+        this.self.pattern = /^>(?:(https?:\/\/.*?)(:.*)?)?>$/; // modified by edvakf
         this.self.endpattern = /^<<$/;
         this.self.childnode = ["h4", "h5", "h6", "blockquote", "dl", "list", "pre", "superpre", "table"];//, "tagline", "tag"];
         this.self.startstring = "<blockquote>";
@@ -657,15 +680,15 @@ Hatena_BlockquoteNode.prototype = Object.extend(new Hatena_SectionNode(), {
         var _this = this;
         var c = _this.self.context;
         var m;
-        if(!(m = c.peek().match(_this.self.pattern))) return;
-        if (m[1]) { // m[1] is the url (added by edvakf)
-            var title = String._escapeHTML(m[3] ? m[3].substr(1) : // if title given, then use it
-                m[2] ? '{{title}}' :  // else if title not given, fetch from YQL
-                m[1]);                // else, use URL
-            _this.self.startstring = _this.self.startstring.replace('>', ' cite="' + m[1] + '" title="' + title + '">');
-            var cite = '<cite><a href="' + m[1] + '">' + title + '</a></cite>';
-        } else {
-            var cite = '';
+        if (!(m = c.peek().match(_this.self.pattern))) {
+            return;
+        }
+        var cite = null;
+        if (m[1]) {
+            var url = m[1];
+            var title = String._escapeHTML(m[2] ? m[2].substr(1) : url);
+            _this.self.startstring = _this.self.startstring.replace('>', ' title="' + title + '" cite="' + url + '">');
+            cite = '<cite><a href="' + url + '">' + title + '</a></cite>';
         }
         c.next();
         _this._set_child_node_refs();
@@ -681,8 +704,11 @@ Hatena_BlockquoteNode.prototype = Object.extend(new Hatena_SectionNode(), {
                 if(node == null) break;
                 node.parse();
             }
+            if (cite) {
+                c.putLine(cite);
+            }
         });
-        c.putLine(cite + _this.self.endstring);
+        c.putLine(_this.self.endstring);
     }
 });
 
@@ -697,25 +723,31 @@ Hatena_TagNode.prototype = Object.extend(new Hatena_SectionNode(), {
     },
 
     parse : function(){
-        var c = this.self.context;
-        if(!c.peek().match(this.self.pattern)) return;
+        var _this = this;
+        var _self = _this.self;
+        var c = _self.context;
+        if (!c.peek().match(_self.pattern)) {
+            return;
+        }
         c.next();
         c.suppressParagraph(true);
-        this._set_child_node_refs();
+        _this._set_child_node_refs();
         c.putLine(RegExp.$1);
-        c.indent(function() {
-            while (c.hasNext()) {
-                var l = c.peek();
-                if (l.match(this.self.endpattern)) {
-                    c.next();
-                    c.putLine(RegExp.$1);
-                    break;
-                }
-                var node = this._findnode(l);
-                if(node == null) break;
-                node.parse();
+        while (c.hasNext()) {
+            var l = c.peek();
+            if (l.match(_self.endpattern)) {
+                c.next();
+                c.putLine(RegExp.$1);
+                break;
             }
-        });
+            var node = _this._findnode(l);
+            if (node == null) {
+                break;
+            }
+            c.indent(function() {
+                node.parse();
+            });
+        }
         c.suppressParagraph(false);
     }
 });

@@ -31,11 +31,11 @@ describe 'Hatena', ->
 <div class="section">
     <h4>はてな記法JavaScript</h4>
     <p>はてな記法ワープロは JavaScript ならではの利点を生かしたダイナミックなワープロです。</p>
-    
+
     <p>試しに色々入力してみてください。即座に出力画面が反映されます<span class="footnote"><a href="#f1" title="Windows 版 IE6 および Firefox 1.0 でのみ確認しています" name="fn1">*1</a></span>。</p>
-    
+
     <p>はてな記法の変換は <a href="http://search.cpan.org/dist/Text-Hatena/">Text::Hatena</a> を JavaScript に移植した "text-hatena.js" を活用しています。</p>
-    
+
     <h4>変更履歴</h4>
     <table>
         <tr>
@@ -72,32 +72,35 @@ describe 'Hatena', ->
 <div class="section">
     <h4>Metasyntactic Variables</h4>
     <ol>
-        <li>Japanese</li>
-        <ul>
-            <li>Hoge</li>
-            <li>Huga</li>
-        </ul>
-        <li>English</li>
-        <ul>
-            <li>Foo</li>
-            <li>Bar</li>
-        </ul>
+        <li>Japanese
+            <ul>
+                <li>Hoge</li>
+                <li>Huga</li>
+            </ul>
+        </li>
+        <li>English
+            <ul>
+                <li>Foo</li>
+                <li>Bar</li>
+            </ul>
+        </li>
     </ol>
 </div>
 """
 
         it 'should parse quotation notation', ->
             i = """
->https://en.wikipedia.org/wiki/Thomas_Hobbes:title=Thomas Hobbes>
+>https://en.wikipedia.org/wiki/Thomas_Hobbes:Thomas Hobbes>
 the life of man, solitary, poor, nasty, brutish, and short
 <<
 """
             # console.log(parse(i))
             assert.equal parse(i), """
 <div class="section">
-    <blockquote cite="https://en.wikipedia.org/wiki/Thomas_Hobbes" title="Thomas Hobbes">
+    <blockquote title="Thomas Hobbes" cite="https://en.wikipedia.org/wiki/Thomas_Hobbes">
         <p>the life of man, solitary, poor, nasty, brutish, and short</p>
-    <cite><a href="https://en.wikipedia.org/wiki/Thomas_Hobbes">Thomas Hobbes</a></cite></blockquote>
+        <cite><a href="https://en.wikipedia.org/wiki/Thomas_Hobbes">Thomas Hobbes</a></cite>
+    </blockquote>
 </div>
 """
 
@@ -129,7 +132,7 @@ end
 <div class="section">
     <pre class="prettyprint rb">
 def hoge
-  puts &#39foobar&#39
+  puts 'foobar'
 end
 </pre>
 </div>
@@ -147,9 +150,9 @@ def
             assert.equal parse(i), """
 <div class="section">
     <p>abc</p>
-    
+
     <div class="foo">hoge</div>
-    
+
     <p>def</p>
 </div>
 """
@@ -179,10 +182,10 @@ foo
             assert.equal parse(i), """
 <div class="section">
     <p>hoge</p>
-    
+
     <figure><a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" /></a></figure>
-    
+
     <p>foo</p>
-    
+
 </div>
 """
