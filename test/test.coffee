@@ -28,30 +28,28 @@ describe 'Hatena', ->
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <h4>はてな記法JavaScript</h4>
-    <p>はてな記法ワープロは JavaScript ならではの利点を生かしたダイナミックなワープロです。</p>
+<h4>はてな記法JavaScript</h4>
+<p>はてな記法ワープロは JavaScript ならではの利点を生かしたダイナミックなワープロです。</p>
 
-    <p>試しに色々入力してみてください。即座に出力画面が反映されます<span class="footnote"><a href="#f1" title="Windows 版 IE6 および Firefox 1.0 でのみ確認しています" name="fn1">*1</a></span>。</p>
+<p>試しに色々入力してみてください。即座に出力画面が反映されます<span class="footnote"><a href="#f1" title="Windows 版 IE6 および Firefox 1.0 でのみ確認しています" name="fn1">*1</a></span>。</p>
 
-    <p>はてな記法の変換は <a href="http://search.cpan.org/dist/Text-Hatena/">Text::Hatena</a> を JavaScript に移植した "text-hatena.js" を活用しています。</p>
+<p>はてな記法の変換は <a href="http://search.cpan.org/dist/Text-Hatena/">Text::Hatena</a> を JavaScript に移植した "text-hatena.js" を活用しています。</p>
 
-    <h4>変更履歴</h4>
-    <table>
-        <tr>
-            <th>2005/12/1</th>
-            <td>ソース機能追加 (HTMLソースを表示できます)</td>
-        </tr>
-        <tr>
-            <th>2005/11/21</th>
-            <td>はてな記法ワープロ完成</td>
-        </tr>
-        <tr>
-            <th>2005/11/13</th>
-            <td>text-hatena.js 移植開始</td>
-        </tr>
-    </table>
-</div>
+<h4>変更履歴</h4>
+<table>
+    <tr>
+        <th>2005/12/1</th>
+        <td>ソース機能追加 (HTMLソースを表示できます)</td>
+    </tr>
+    <tr>
+        <th>2005/11/21</th>
+        <td>はてな記法ワープロ完成</td>
+    </tr>
+    <tr>
+        <th>2005/11/13</th>
+        <td>text-hatena.js 移植開始</td>
+    </tr>
+</table>
 <div class="footnote">
     <p class="footnote"><a href="#fn1" name="f1">*1</a>: Windows 版 IE6 および Firefox 1.0 でのみ確認しています</p>
 </div>
@@ -69,23 +67,21 @@ describe 'Hatena', ->
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <h4>Metasyntactic Variables</h4>
-    <ol>
-        <li>Japanese
-            <ul>
-                <li>Hoge</li>
-                <li>Huga</li>
-            </ul>
-        </li>
-        <li>English
-            <ul>
-                <li>Foo</li>
-                <li>Bar</li>
-            </ul>
-        </li>
-    </ol>
-</div>
+<h4>Metasyntactic Variables</h4>
+<ol>
+    <li>Japanese
+        <ul>
+            <li>Hoge</li>
+            <li>Huga</li>
+        </ul>
+    </li>
+    <li>English
+        <ul>
+            <li>Foo</li>
+            <li>Bar</li>
+        </ul>
+    </li>
+</ol>
 """
 
         it 'should parse quotation notation', ->
@@ -96,12 +92,10 @@ the life of man, solitary, poor, nasty, brutish, and short
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <blockquote title="Thomas Hobbes" cite="https://en.wikipedia.org/wiki/Thomas_Hobbes">
-        <p>the life of man, solitary, poor, nasty, brutish, and short</p>
-        <cite><a href="https://en.wikipedia.org/wiki/Thomas_Hobbes">Thomas Hobbes</a></cite>
-    </blockquote>
-</div>
+<blockquote title="Thomas Hobbes" cite="https://en.wikipedia.org/wiki/Thomas_Hobbes">
+    <p>the life of man, solitary, poor, nasty, brutish, and short</p>
+    <cite><a href="https://en.wikipedia.org/wiki/Thomas_Hobbes">Thomas Hobbes</a></cite>
+</blockquote>
 """
 
         it 'should parse pre notation', ->
@@ -112,11 +106,9 @@ the life of man, solitary, poor, nasty, <strong>brutish</strong>, and short
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <pre>
+<pre>
 the life of man, solitary, poor, nasty, <strong>brutish</strong>, and short
 </pre>
-</div>
 """
 
         it 'should parse code notation', ->
@@ -129,13 +121,11 @@ end
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <pre class="prettyprint rb">
+<pre class="prettyprint rb">
 def hoge
   puts 'foobar'
 end
 </pre>
-</div>
 """
 
         it 'should parse no-tag notation', ->
@@ -148,13 +138,11 @@ def
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <p>abc</p>
+<p>abc</p>
 
-    <div class="foo">hoge</div>
+<div class="foo">hoge</div>
 
-    <p>def</p>
-</div>
+<p>def</p>
 """
 
         it 'should parse link notation', ->
@@ -163,9 +151,7 @@ This project is hosted on [https://github.com/harai/blogger-hatena-markup:GitHub
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <p>This project is hosted on <a href="https://github.com/harai/blogger-hatena-markup">GitHub</a>.</p>
-</div>
+<p>This project is hosted on <a href="https://github.com/harai/blogger-hatena-markup">GitHub</a>.</p>
 """
 
         it 'should parse gimage notation', ->
@@ -180,12 +166,10 @@ foo
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <p>hoge</p>
+<p>hoge</p>
 
-    <figure><a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" /></a></figure>
+<figure><a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" /></a></figure>
 
-    <p>foo</p>
+<p>foo</p>
 
-</div>
 """

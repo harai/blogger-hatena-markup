@@ -23,9 +23,7 @@ describe 'Hatena', ->
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <h4>Hello, World!</h4>
-</div>
+<h4>Hello, World!</h4>
 """
         it 'h4_2', ->
             i = """
@@ -34,10 +32,8 @@ This is Text::Hatena.
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <h4>Hello, World!</h4>
-    <p>This is Text::Hatena.</p>
-</div>
+<h4>Hello, World!</h4>
+<p>This is Text::Hatena.</p>
 """
         it 'h4_3', ->
             i = """ *Hello, World!
@@ -45,10 +41,8 @@ This is Text::Hatena.
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <p> *Hello, World!</p>
-    <p>This is Text::Hatena.</p>
-</div>
+<p> *Hello, World!</p>
+<p>This is Text::Hatena.</p>
 """
         it 'h4_4', ->
             i = """
@@ -62,15 +56,13 @@ Beautiful day!
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <h4>Good morning</h4>
+<h4>Good morning</h4>
 
-    <p>It's morning.</p>
+<p>It's morning.</p>
 
-    <h4>Good afternoon</h4>
+<h4>Good afternoon</h4>
 
-    <p>Beautiful day!</p>
-</div>
+<p>Beautiful day!</p>
 """
         it 'h5', ->
             i = """
@@ -80,11 +72,9 @@ This is Text::Hatena.
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <h5>Hello, Japan!</h5>
+<h5>Hello, Japan!</h5>
 
-    <p>This is Text::Hatena.</p>
-</div>
+<p>This is Text::Hatena.</p>
 """
         it 'h6', ->
             i = """
@@ -94,11 +84,9 @@ This is Text::Hatena.
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <h6>Hello, Tokyo!</h6>
+<h6>Hello, Tokyo!</h6>
 
-    <p>This is Text::Hatena.</p>
-</div>
+<p>This is Text::Hatena.</p>
 """
         it 'blockquote', ->
             i = """
@@ -108,11 +96,9 @@ quoted
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <blockquote>
-        <p>quoted</p>
-    </blockquote>
-</div>
+<blockquote>
+    <p>quoted</p>
+</blockquote>
 """
         it 'blockquote2', ->
             i = """
@@ -125,25 +111,21 @@ quoted quoted
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
+<blockquote>
+    <p>quoted</p>
     <blockquote>
-        <p>quoted</p>
-        <blockquote>
-            <p>quoted quoted</p>
-        </blockquote>
+        <p>quoted quoted</p>
     </blockquote>
-</div>
+</blockquote>
 """
         it 'blockquote3', ->
             i = """ >>\n unquoted\n <<
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <p> >></p>
-    <p> unquoted</p>
-    <p> <<</p>
-</div>
+<p> >></p>
+<p> unquoted</p>
+<p> <<</p>
 """
         it 'blockquote4', ->
             i = """
@@ -153,12 +135,10 @@ Hatena
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <blockquote title="http://www.hatena.ne.jp/" cite="http://www.hatena.ne.jp/">
-        <p>Hatena</p>
-        <cite><a href="http://www.hatena.ne.jp/">http://www.hatena.ne.jp/</a></cite>
-    </blockquote>
-</div>
+<blockquote title="http://www.hatena.ne.jp/" cite="http://www.hatena.ne.jp/">
+    <p>Hatena</p>
+    <cite><a href="http://www.hatena.ne.jp/">http://www.hatena.ne.jp/</a></cite>
+</blockquote>
 """
         it 'blockquote5', ->
             i = """
@@ -168,12 +148,10 @@ Hatena
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <blockquote title="Hatena" cite="http://www.hatena.ne.jp/">
-        <p>Hatena</p>
-        <cite><a href="http://www.hatena.ne.jp/">Hatena</a></cite>
-    </blockquote>
-</div>
+<blockquote title="Hatena" cite="http://www.hatena.ne.jp/">
+    <p>Hatena</p>
+    <cite><a href="http://www.hatena.ne.jp/">Hatena</a></cite>
+</blockquote>
 """
         it 'dl', ->
             i = """
@@ -181,12 +159,10 @@ Hatena
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <dl>
-        <dt>cinnamon</dt>
-        <dd>dog</dd>
-    </dl>
-</div>
+<dl>
+    <dt>cinnamon</dt>
+    <dd>dog</dd>
+</dl>
 """
         it 'dl2', ->
             i = """
@@ -195,14 +171,12 @@ Hatena
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <dl>
-        <dt>cinnamon</dt>
-        <dd>dog</dd>
-        <dt>tama</dt>
-        <dd>cat</dd>
-    </dl>
-</div>
+<dl>
+    <dt>cinnamon</dt>
+    <dd>dog</dd>
+    <dt>tama</dt>
+    <dd>cat</dd>
+</dl>
 """
         it 'ul', ->
             i = """
@@ -212,13 +186,11 @@ Hatena
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <ul>
-        <li>komono</li>
-        <li>kyoto</li>
-        <li>shibuya</li>
-    </ul>
-</div>
+<ul>
+    <li>komono</li>
+    <li>kyoto</li>
+    <li>shibuya</li>
+</ul>
 """
         it 'ul2', ->
             i = """
@@ -229,20 +201,18 @@ Hatena
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <ul>
-        <li>komono
-            <ul>
-                <li>kyoto
-                    <ul>
-                        <li>shibuya</li>
-                    </ul>
-                </li>
-                <li>hachiyama</li>
-            </ul>
-        </li>
-    </ul>
-</div>
+<ul>
+    <li>komono
+        <ul>
+            <li>kyoto
+                <ul>
+                    <li>shibuya</li>
+                </ul>
+            </li>
+            <li>hachiyama</li>
+        </ul>
+    </li>
+</ul>
 """
         it 'ul3', ->
             i = """
@@ -253,26 +223,22 @@ Hatena
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <ul>
-        <li>list
-            <ul>
-                <li>ul</li>
-                <li>ol</li>
-            </ul>
-        </li>
-        <li>pre</li>
-    </ul>
-</div>
+<ul>
+    <li>list
+        <ul>
+            <li>ul</li>
+            <li>ol</li>
+        </ul>
+    </li>
+    <li>pre</li>
+</ul>
 """
         it 'ul4', ->
             i = " - wrong list\n - what's happen?"
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <p> - wrong list</p>
-    <p> - what's happen?</p>
-</div>
+<p> - wrong list</p>
+<p> - what's happen?</p>
 """
         it 'ul5', ->
             i = """
@@ -282,13 +248,11 @@ Hatena
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <ul>
-        <li> right list</li>
-    </ul>
-    <p> - wrong list</p>
-    <p> - what's happen?</p>
-</div>
+<ul>
+    <li> right list</li>
+</ul>
+<p> - wrong list</p>
+<p> - what's happen?</p>
 """
         it 'ul6', ->
             i = """
@@ -300,21 +264,19 @@ Hatena
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <ul>
-        <li>Japan
-            <ul>
-                <li>Kyoto</li>
-                <li>Tokyo</li>
-            </ul>
-        </li>
-        <li>USA
-            <ul>
-                <li>Mountain View</li>
-            </ul>
-        </li>
-    </ul>
-</div>
+<ul>
+    <li>Japan
+        <ul>
+            <li>Kyoto</li>
+            <li>Tokyo</li>
+        </ul>
+    </li>
+    <li>USA
+        <ul>
+            <li>Mountain View</li>
+        </ul>
+    </li>
+</ul>
 """
         it 'ul7', ->
             i = """
@@ -325,20 +287,18 @@ Hatena
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <ul>
-        <li>komono
-            <ul>
-                <li>kyoto
-                    <ul>
-                        <li>shibuya</li>
-                    </ul>
-                </li>
-                <li>hachiyama</li>
-            </ul>
-        </li>
-    </ul>
-</div>
+<ul>
+    <li>komono
+        <ul>
+            <li>kyoto
+                <ul>
+                    <li>shibuya</li>
+                </ul>
+            </li>
+            <li>hachiyama</li>
+        </ul>
+    </li>
+</ul>
 """
         it 'ol', ->
             i = """
@@ -348,13 +308,11 @@ Hatena
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <ol>
-        <li>Register</li>
-        <li>Login</li>
-        <li>Write your blog</li>
-    </ol>
-</div>
+<ol>
+    <li>Register</li>
+    <li>Login</li>
+    <li>Write your blog</li>
+</ol>
 """
         it 'ol2', ->
             i = """
@@ -367,22 +325,20 @@ Hatena
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <ul>
-        <li>Steps
-            <ol>
-                <li>Register</li>
-                <li>Login</li>
-                <li>Write your blog</li>
-            </ol>
-        </li>
-        <li>Option
-            <ul>
-                <li>180pt</li>
-            </ul>
-        </li>
-    </ul>
-</div>
+<ul>
+    <li>Steps
+        <ol>
+            <li>Register</li>
+            <li>Login</li>
+            <li>Write your blog</li>
+        </ol>
+    </li>
+    <li>Option
+        <ul>
+            <li>180pt</li>
+        </ul>
+    </li>
+</ul>
 """
         it 'super_pre', ->
             i = """
@@ -394,13 +350,11 @@ my $url = 'http://d.hatena.ne.jp/';
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <pre>
+<pre>
 #!/usr/bin/perl
 
 my $url = 'http://d.hatena.ne.jp/';
 </pre>
-</div>
 """
         # it 'super_pre_fail', ->
             # i = """
@@ -411,8 +365,7 @@ my $url = 'http://d.hatena.ne.jp/';
 # """
             # # console.log(parse(i))
             # assert.equal parse(i), """
-# <div class="section">
-# <p>>||</p>
+# # <p>>||</p>
 # <p>#!/usr/bin/perl</p>
 # 
 # <p>my $name = 'jkondo'||<</p>
@@ -428,13 +381,11 @@ my $url = 'http://d.hatena.ne.jp/';
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <pre class="prettyprint perl">
+<pre class="prettyprint perl">
 #!/usr/bin/perl
 
 my $url = 'http://d.hatena.ne.jp/';
 </pre>
-</div>
 """
         it 'super_pre3', ->
             i = """
@@ -448,15 +399,13 @@ http://www.hatena.com/ unanchored.
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <pre>
+<pre>
 &gt;&gt;
 unquoted
 &lt;&lt;
 - unlisted
 http://www.hatena.com/ unanchored.
 </pre>
-</div>
 """
         it 'super_pre4', ->
             i = """
@@ -471,8 +420,7 @@ http://www.hatena.com/ unanchored.
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <pre>
+<pre>
 &gt;&gt;
 unquoted
 &lt;&lt;
@@ -480,7 +428,6 @@ unquoted
 http://www.hatena.com/ unanchored.
 &lt;a href="http://www.hatena.com/"&gt;escaped tags&lt;/a&gt;
 </pre>
-</div>
 """
         it 'pre', ->
             i = """
@@ -494,15 +441,13 @@ say 'Hello, World!';
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <pre>
+<pre>
 #!/usr/bin/perl
 use strict;
 use warnings;
 
 say 'Hello, World!';
 </pre>
-</div>
 """
         it 'pre2', ->
             i = """
@@ -519,8 +464,7 @@ jkondo
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <pre>
+<pre>
 To: info@test.com
 Subject: This is Test.
 
@@ -530,7 +474,6 @@ Hello, This is test from Text::Hatena.
 --
 jkondo
 </pre>
-</div>
 """
         it 'table', ->
             i = """
@@ -539,18 +482,16 @@ jkondo
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <table>
-        <tr>
-            <th>Lang</th>
-            <th>Module</th>
-        </tr>
-        <tr>
-            <td>Perl</td>
-            <td>Text::Hatena</td>
-        </tr>
-    </table>
-</div>
+<table>
+    <tr>
+        <th>Lang</th>
+        <th>Module</th>
+    </tr>
+    <tr>
+        <td>Perl</td>
+        <td>Text::Hatena</td>
+    </tr>
+</table>
 """
         it 'cdata', ->
             i = """
@@ -559,10 +500,8 @@ paragraph line
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <div>no paragraph line</div>
-    <p>paragraph line</p>
-</div>
+<div>no paragraph line</div>
+<p>paragraph line</p>
 """
         it 'cdata2', ->
             i = """
@@ -572,11 +511,9 @@ paragraph line
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <blockquote>
-        <p>Hello I am writing HTML tags by myself</p>
-    </blockquote>
-</div>
+<blockquote>
+    <p>Hello I am writing HTML tags by myself</p>
+</blockquote>
 """
         it 'cdata3', ->
             i = """
@@ -587,10 +524,8 @@ It's candy blockquote.
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<div class="section">
-    <blockquote>
-    <p>Please add p tags for me.</p>
-    <p>It's candy blockquote.</p>
-    </blockquote>
-</div>
+<blockquote>
+<p>Please add p tags for me.</p>
+<p>It's candy blockquote.</p>
+</blockquote>
 """

@@ -149,7 +149,7 @@ Hatena.prototype = {
 
         this.self.beforeFilter(c);
 
-        var node = new Hatena_BodyNode();
+        var node = new Hatena_SectionNode();
         node._new({ context: c });
         node.parse();
 
@@ -283,19 +283,6 @@ Hatena_Node.prototype = {
         this.self.context = v;
     }
 };
-
-
-Hatena_BodyNode = function(){};
-Hatena_BodyNode.prototype = Object.extend(new Hatena_Node(), {
-    parse : function(){
-        var c = this.self.context;
-        while (this.self.context.hasNext()) {
-            var node = new Hatena_SectionNode();
-            node._new({ context: c });
-            node.parse();
-        }
-    }
-});
 
 
 Hatena_BrNode = function(){};
@@ -589,33 +576,25 @@ Hatena_TableNode.prototype = Object.extend(new Hatena_Node(), {
 });
 
 
-Hatena_SectionNode = function(){};
+Hatena_SectionNode = function() {};
 Hatena_SectionNode.prototype = Object.extend(new Hatena_Node(), {
-    init : function(){
+    init: function() {
         this.self.childnode = ["h6", "h5", "h4", "blockquote", "dl", "list", "pre", "superpre", "table", "tagline", "tag"];
-        this.self.startstring = '<div class="section">';
-        this.self.endstring = '</div>';
         this.self.child_node_refs = Array();
     },
 
-    parse : function(){
+    parse: function() {
         var _this = this;
         var c = _this.self.context;
         _this._set_child_node_refs();
-        c.putLine(_this.self.startstring);
-        c.indent(function() {
-            while (c.hasNext()) {
-                var l = c.peek();
-                var node = _this._findnode(l);
-                if(node == null) return;
-                // TODO: ref == instanceof ???
-                //if (ref(node) eq 'Hatena_H3Node') {
-                //  if(this.self.started++) break;
-                //}
-                node.parse();
+        while (c.hasNext()) {
+            var l = c.peek();
+            var node = _this._findnode(l);
+            if (node == null) {
+                return;
             }
-        });
-        c.putLine(_this.self.endstring);
+            node.parse();
+        }
     },
 
     _set_child_node_refs : function(){
