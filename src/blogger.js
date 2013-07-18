@@ -624,8 +624,7 @@ var bloggerHatenaMarkup = function () {
     initState();
 
     function seePreview() {
-        hatena.parse(hatenaEditor.value);
-        hatenaPreview.innerHTML = hatena.html();
+        hatenaPreview.innerHTML = hatena.parse(hatenaEditor.value);
         setTextArea();
     }
 

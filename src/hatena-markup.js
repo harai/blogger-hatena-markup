@@ -1,8 +1,3 @@
-/*
-  * http://tech.nitoyon.com/javascript/application/texthatena/text-hatena0-2.js
-  * modified by edvakf
-  */
-
 // from prototype.js
 Object.extend = function(destination, source) {
     for (property in source) {
@@ -40,21 +35,21 @@ Hatena = function(args){
     var document = args.doc;
     
     var beforeFilter = function(c) {
-        var html = c.text();
+        var text = c.getInputText();
 
         var aliases = function() {
-            html = html.replace(/\[alias:([\w-]+):(https?:\/\/[^\]\s]+?)\]\n?/mg, function($0, $1, $2) {
-                c.aliases($1, $2);
+            text = text.replace(/\[alias:([\w-]+):(https?:\/\/[^\]\s]+?)\]\n?/mg, function($0, $1, $2) {
+                c.addAlias($1, $2);
                 return "";
             });
         };
 
         var insertImages = function() {
-            html = html.replace(/\[gimage:([\w-]+)(?::([^\]]+))?\]/g, function($0, id, prop) {
+            text = text.replace(/\[gimage:([\w-]+)(?::([^\]]+))?\]/g, function($0, id, prop) {
                 var props = prop.split(/,/);
                 var size = props[0];
                 var pos = props[1] || null;
-                var alias = c.aliases(id);
+                var alias = c.getAlias(id);
                 if (alias === null) {
                     return "";
                 }
@@ -86,12 +81,12 @@ Hatena = function(args){
         aliases();
         insertImages();
 
-        c.text(html);
+        c.setInputText(text);
     };
     
     var afterFilter = function(c) {
         var html = "";
-        var text = c.html();
+        var text = c.getResult();
 
         var footnote = function() {
             var foot = text.split("((");
@@ -111,11 +106,12 @@ Hatena = function(args){
                 if(pre.match(/\)$/) && post.match(/^\(/)){
                     html += "((" + post;
                 } else {
-                    var notes = c.footnotes(note);
-                    var num = notes.length;
+                    c.addFootnote(note);
+                    var num = c.getFootnotes().length;
                     note = note.replace(/<.*?>/g, "");
                     note = note.replace(/&/g, "&amp;");
-                    html += '<span class="footnote"><a href="#f' + num + '" title="' + note + '" name="fn' + num + '">*' + num + '</a></span>' + post;
+                    html += '<span class="footnote"><a href="#f' + num + '" title="' + note +
+                        '" name="fn' + num + '">*' + num + '</a></span>' + post;
                 }
             }
         };
@@ -131,7 +127,7 @@ Hatena = function(args){
         footnote();
         link();
 
-        c.html(html);
+        c.replaceResult(html);
     };
 
     this.self = {
@@ -152,16 +148,13 @@ Hatena.prototype = {
 
         this.self.afterFilter(c);
 
-        if (this.self.context.footnotes().length != 0) {
+        if (this.self.context.getFootnotes().length != 0) {
             var node = new Hatena_FootnoteNode();
             node._new({ context : c });
             node.parse();
         }
-        this.self.html = c.html();
-    }, 
 
-    html : function(){
-        return this.self.html;
+        return c.getResult();
     }
 };
 
@@ -169,9 +162,9 @@ Hatena.prototype = {
 Hatena_Context = function(args){
     this.self = {
         text : args["text"],
-        _htmllines : [],
+        resultLines : [],
         footnotes : [],
-        noparagraph : 0,
+        noparagraph : false,
         aliases: {},
         indent: 0,
         indentStr: "    ",
@@ -180,7 +173,7 @@ Hatena_Context = function(args){
 };
 Hatena_Context.prototype = {
     init: function() {
-        this.text(this.self.text);
+        this.setInputText(this.self.text);
     },
 
     hasNext: function() {
@@ -195,50 +188,59 @@ Hatena_Context.prototype = {
         return this.self.lines[++this.self.index];
     },
 
-    text: function(text) {
-        if (text == null) {
-            return this.self.text;
-        }
+    setInputText: function(text) {
         this.self.text = text.replace(/\r/g, "");
         this.self.lines = this.self.text.split('\n');
         this.self.index = -1;
     },
 
-    html: function(html) {
-        if (html != null) {
-            this.self._htmllines = html.split("\n");
-        }
-        return this.self._htmllines.join ("\n");
+    getInputText: function() {
+        return this.self.text;
+    },
+
+    getResult: function() {
+        return this.self.resultLines.join("\n");
+    },
+
+    replaceResult: function(resultStr) {
+        this.self.resultLines = resultStr.split("\n");
     },
 
     putLine: function(line) {
         var iStr = String.times(this.self.indentStr, this.self.indent);
-        this.self._htmllines.push(iStr + line);
+        this.self.resultLines.push(iStr + line);
     },
 
     putLineWithoutIndent: function(line) {
-        this.self._htmllines.push(line);
+        this.self.resultLines.push(line);
     },
 
     getLastPut: function() {
-        return this.self._htmllines[this.self._htmllines.length - 1];
+        return this.self.resultLines[this.self.resultLines.length - 1];
     },
 
-    footnotes: function(line) {
-        if(line != null) this.self.footnotes.push(line);
+    addFootnote: function(line) {
+        this.self.footnotes.push(line);
+    },
+
+    getFootnotes: function() {
         return this.self.footnotes;
     },
 
-    noparagraph: function(noparagraph) {
-        if(noparagraph != null) this.self.noparagraph = noparagraph;
+    isParagraphSuppressed: function() {
         return this.self.noparagraph;
     },
 
-    aliases: function(id, url) {
-        if (url != null) {
-            this.self.aliases[id] =  { url: url };
-        }
+    suppressParagraph: function(b) {
+        this.self.noparagraph = b;
+    },
+
+    getAlias: function(id) {
         return this.self.aliases[id];
+    },
+
+    addAlias: function(id, url) {
+        this.self.aliases[id] =  { url: url };
     },
 
     indent: function(f, num) {
@@ -251,24 +253,26 @@ Hatena_Context.prototype = {
 };
 
 
-Hatena_Node = function(){}
+Hatena_Node = function() {};
 Hatena_Node.prototype = {
-    pattern : "",
+    pattern: "",
 
-    _new : function(args){
-        if(args == null) args = Array();
-        this.self = {
-            context : args["context"],
-        };
+    _new: function(args) {
+        if (args == null) {
+            args = [];
+        }
+        this.self = { context: args["context"] };
         this.init();
     },
-    init : function(){
+    init: function() {
         this.self.pattern = '';
     },
 
-    parse : function(){ alert('die'); },
+    parse: function() {
+        alert('die');
+    },
 
-    context : function(v){
+    context: function(v) {
         this.self.context = v;
     }
 };
@@ -344,16 +348,17 @@ Hatena_FootnoteNode = function(){};
 Hatena_FootnoteNode.prototype = Object.extend(new Hatena_Node(), {
     parse : function(){
         var c = this.self.context;
-        if (c.footnotes().length == 0) {
+        if (c.getFootnotes().length == 0) {
             return;
         }
 
         c.putLine('<div class="footnote">');
         c.indent(function() {
-            for (var i = 0; i < c.self.footnotes.length; i++) {
+            var footnotes = c.getFootnotes();
+            for (var i = 0; i < footnotes.length; i++) {
                 var n = i + 1;
                 var l = '<p class="footnote"><a href="#fn' + n + '" name="f' + n + '">*' +
-                    n + '</a>: ' + c.self.footnotes[i] + '</p>';
+                    n + '</a>: ' + footnotes[i] + '</p>';
                 c.putLine(l);
             }
         });
@@ -623,7 +628,7 @@ Hatena_SectionNode.prototype = Object.extend(new Hatena_Node(), {
             var node = new Hatena_BrNode({ context: c });
             node._new({ context: c });
             return node;
-        } else if (c.noparagraph()) {
+        } else if (c.isParagraphSuppressed()) {
             var node = new Hatena_CDataNode();
             node._new({ context: c });
             return node;
@@ -695,7 +700,7 @@ Hatena_TagNode.prototype = Object.extend(new Hatena_SectionNode(), {
         var c = this.self.context;
         if(!c.peek().match(this.self.pattern)) return;
         c.next();
-        c.noparagraph(1);
+        c.suppressParagraph(true);
         this._set_child_node_refs();
         c.putLine(RegExp.$1);
         c.indent(function() {
@@ -711,7 +716,7 @@ Hatena_TagNode.prototype = Object.extend(new Hatena_SectionNode(), {
                 node.parse();
             }
         });
-        c.noparagraph(0);
+        c.suppressParagraph(false);
     }
 });
 

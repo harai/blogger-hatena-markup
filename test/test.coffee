@@ -7,9 +7,7 @@ require "../src/hatena-markup"
 describe 'Hatena', ->
     describe '#parse()', ->
         h = null
-        parse = (str) ->
-            h.parse str
-            h.html()
+        parse = (str) -> h.parse str
 
         beforeEach ->
             h = new Hatena(doc: doc)
