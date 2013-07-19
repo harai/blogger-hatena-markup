@@ -265,13 +265,12 @@ Hatena_GimageNode.prototype = Object.extend(new Hatena_Node(), {
 
     parse: function() {
         var c = this.self.context;
-        if (!c.peek().match(this.self.pattern)) {
-            return;
+        if (!c.next().match(this.self.pattern)) {
+            throw "parser error";
         }
 
         var text = Hatena_GimageNode.createGimages(RegExp.$1, RegExp.$2, c);
         c.putLine(text);
-        c.next();
     }
 });
 
@@ -334,27 +333,21 @@ Hatena_CDataNode.prototype = Object.extend(new Hatena_Node(), {
 
 Hatena_DlNode = function(){};
 Hatena_DlNode.prototype = Object.extend(new Hatena_Node(), {
-    init : function(){
+    init: function() {
         this.self.pattern = /^\:((?:<[^>]+>|\[\].+?\[\]|\[[^\]]+\]|\[\]|[^\:<\[]+)+)\:(.+)$/;
     },
 
-    parse : function(){
+    parse: function() {
         var _self = this.self;
         var c = _self.context;
-        if (!c.peek().match(_self.pattern)) {
-            return;
-        }
 
         c.putLine("<dl>");
         c.indent(function() {
-            var l;
-            while (l = c.peek()) {
-                if (!l.match(_self.pattern)) {
-                    break;
-                }
+            var m = null;
+            while (c.hasNext() && (m = c.peek().match(_self.pattern))) {
                 c.next();
-                c.putLine("<dt>" + Hatena_InLine.parsePart(RegExp.$1, c) + "</dt>");
-                c.putLine("<dd>" + Hatena_InLine.parsePart(RegExp.$2, c) + "</dd>");
+                c.putLine("<dt>" + Hatena_InLine.parsePart(m[1], c) + "</dt>");
+                c.putLine("<dd>" + Hatena_InLine.parsePart(m[2], c) + "</dd>");
             }
         });
         c.putLine("</dl>");
@@ -491,7 +484,7 @@ Hatena_ListNode.prototype = Object.extend(new Hatena_Node(), {
         var _self = this.self;
         var c = _self.context;
         if (!c.peek().match(_self.pattern)) {
-            return;
+            throw "parser error";
         }
         var llevel = RegExp.$1.length;
         var listType = RegExp.$1.substr(0, 1) == '-' ? 'ul' : 'ol';
@@ -504,16 +497,7 @@ Hatena_ListNode.prototype = Object.extend(new Hatena_Node(), {
                 if (!(m = l.match(_self.pattern))) {
                     break;
                 }
-                if (m[1].length > llevel) {
-                    c.indent(function() {
-                        var node = new Hatena_ListNode();
-                        node._new({ context : c });
-                        node.parse();
-                    });
-                    c.putLine("</li>");
-                } else if (m[1].length < llevel) {
-                    break;
-                } else {
+                if (m[1].length == llevel) {
                     c.next();
                     var entry = m[2];
                     var l2, m2;
@@ -522,6 +506,15 @@ Hatena_ListNode.prototype = Object.extend(new Hatena_Node(), {
                     } else {
                         c.putLine("<li>" + Hatena_InLine.parsePart(m[2], c) + "</li>");
                     }
+                } else if (m[1].length > llevel) {
+                    c.indent(function() {
+                        var node = new Hatena_ListNode();
+                        node._new({ context : c });
+                        node.parse();
+                    });
+                    c.putLine("</li>");
+                } else {
+                    break;
                 }
             }
         });
@@ -544,19 +537,15 @@ Hatena_PreNode.prototype = Object.extend(new Hatena_Node(), {
     init: function(){
         this.self.pattern = /^>\|$/;
         this.self.endpattern = /(.*)\|<$/;
-        this.self.startstring = "<pre>"; // TODO add <code> and </code>
-        this.self.endstring = "</pre>"; // TODO refactor
     },
 
     parse: function(){ // modified by edvakf
         var c = this.self.context;
-        var ss = this.self.startstring;
         var m;
-        if (!(m = c.peek().match(this.self.pattern))) {
-            return;
+        if (!(m = c.next().match(this.self.pattern))) {
+            throw "parser error";
         }
-        c.next();
-        c.putLine(ss);
+        c.putLine("<pre>");
         var x = '';
         while (c.hasNext()) {
             var l = c.peek();
@@ -567,11 +556,7 @@ Hatena_PreNode.prototype = Object.extend(new Hatena_Node(), {
             }
             c.putLineWithoutIndent(Hatena_InLine.parsePart(c.next(), c));
         }
-        c.putLineWithoutIndent(Hatena_InLine.parsePart(x, c) + this.self.endstring);
-    },
-
-    escape_pre: function(text) {
-        return text;
+        c.putLineWithoutIndent(Hatena_InLine.parsePart(x, c) + "</pre>");
     }
 });
 
@@ -581,17 +566,15 @@ Hatena_SuperpreNode.prototype = Object.extend(new Hatena_Node(), {
     init: function() {
         this.self.pattern = /^>\|(\S*)\|$/; // modified by edvakf
         this.self.endpattern = /^\|\|<$/;
-        this.self.startstring = "<pre>"; // TODO refactor
-        this.self.endstring = "</pre>";
     },
 
     parse: function(){ // modified by edvakf
         var c = this.self.context;
-        var ss = this.self.startstring;
         var m;
-        if(!(m = c.peek().match(this.self.pattern))) return;
-        c.next();
-        c.putLine(m[1] !== "" ? ss.replace('>',' class="prettyprint ' + m[1] + '">') : ss); // TODO refactor
+        if (!(m = c.next().match(this.self.pattern))) {
+            throw "parser error";
+        }
+        c.putLine(m[1] !== "" ? '<pre class="prettyprint ' + m[1] + '">' : "<pre>"); // TODO add <code> and </code>
         var x = '';
         while (c.hasNext()) {
             var l = c.peek();
@@ -600,38 +583,30 @@ Hatena_SuperpreNode.prototype = Object.extend(new Hatena_Node(), {
                 c.next();
                 break;
             }
-            c.putLineWithoutIndent(this.escape_pre(c.next()));
+            c.putLineWithoutIndent(String._escapeInsidePre(c.next()));
         }
-        c.putLineWithoutIndent(x + this.self.endstring);
-    },
-
-    escape_pre: function(s) {
-        return String._escapeInsidePre(s);
+        c.putLineWithoutIndent(x + "</pre>");
     }
 });
 
 
 Hatena_TableNode = function(){};
 Hatena_TableNode.prototype = Object.extend(new Hatena_Node(), {
-    init : function(){
+    init: function() {
         this.self.pattern = /^\|([^\|]*\|(?:[^\|]*\|)+)$/;
     },
 
-    parse : function(s){
+    parse: function() {
         var _self = this.self;
         var c = _self.context;
-        var l = c.peek();
-        if (!l.match(_self.pattern)) {
-            return;
-        }
 
         c.putLine("<table>");
         c.indent(function() {
-            while (l = c.peek()) {
-                if (!l.match(_self.pattern)) {
+            while (c.hasNext()) {
+                if (!c.peek().match(_self.pattern)) {
                     break;
                 }
-                l = c.next();
+                var l = c.next();
                 c.putLine("<tr>");
                 var td = l.split("|");
                 td.pop();
@@ -660,7 +635,7 @@ Hatena_SectionNode.prototype = Object.extend(new Hatena_Node(), {
         this.self.childnode =
             ["h6", "h5", "h4", "blockquote", "dl", "list", "pre", "superpre", "table", "tagline", "tag",
             "gimage", "alias"];
-        this.self.child_node_refs = Array();
+        this.self.child_node_refs = [];
     },
 
     parse: function() {
@@ -668,8 +643,7 @@ Hatena_SectionNode.prototype = Object.extend(new Hatena_Node(), {
         var c = _this.self.context;
         _this._set_child_node_refs();
         while (c.hasNext()) {
-            var l = c.peek();
-            var node = _this._findnode(l);
+            var node = _this._findnode(c.peek());
             if (node == null) {
                 return;
             }
@@ -731,9 +705,7 @@ Hatena_BlockquoteNode.prototype = Object.extend(new Hatena_SectionNode(), {
         this.self.endpattern = /^<<$/;
         this.self.childnode =
             ["h4", "h5", "h6", "blockquote", "dl", "list", "pre", "superpre", "table", "gimage", "alias"];
-        this.self.startstring = "<blockquote>"; // TODO refactor
-        this.self.endstring = "</blockquote>";
-        this.self.child_node_refs = Array();
+        this.self.child_node_refs = [];
     },
 
     parse : function(){
@@ -744,31 +716,35 @@ Hatena_BlockquoteNode.prototype = Object.extend(new Hatena_SectionNode(), {
             return;
         }
         var cite = null;
+        var beginTag = null;
         if (m[1]) {
             var url = m[1];
             var title = String._escapeHTML(m[2] ? m[2].substr(1) : url);
-            _this.self.startstring = _this.self.startstring.replace('>', ' title="' + title + '" cite="' + url + '">');
+            beginTag = '<blockquote title="' + title + '" cite="' + url + '">';
             cite = '<cite><a href="' + url + '">' + title + '</a></cite>';
+        } else {
+            beginTag = "<blockquote>";
         }
         c.next();
         _this._set_child_node_refs();
-        c.putLine(_this.self.startstring);
+        c.putLine(beginTag);
         c.indent(function() {
             while (c.hasNext()) {
-                var l = c.peek();
-                if (l.match(_this.self.endpattern)) {
+                if (c.peek().match(_this.self.endpattern)) {
                     c.next();
                     break;
                 }
-                var node = _this._findnode(l);
-                if(node == null) break;
+                var node = _this._findnode(c.peek());
+                if (node == null) {
+                    break;
+                }
                 node.parse();
             }
             if (cite) {
                 c.putLine(cite);
             }
         });
-        c.putLine(_this.self.endstring);
+        c.putLine("</blockquote>");
     }
 });
 
@@ -780,28 +756,28 @@ Hatena_TagNode.prototype = Object.extend(new Hatena_SectionNode(), {
         this.self.endpattern = /^(.*>)<$/;
         this.self.childnode =
             ["h4", "h5", "h6", "blockquote", "dl", "list", "pre", "superpre", "table", "gimage", "alias"];
-        this.self.child_node_refs = Array();
+        this.self.child_node_refs = [];
     },
 
-    parse : function(){
+    parse : function() {
         var _this = this;
         var _self = _this.self;
         var c = _self.context;
-        if (!c.peek().match(_self.pattern)) {
-            return;
+        var m;
+        if (!(m = c.next().match(_self.pattern))) {
+            throw "parser error";
         }
-        c.next();
         c.suppressParagraph(true);
         _this._set_child_node_refs();
-        c.putLine(Hatena_InLine.parsePart(RegExp.$1, c));
+        c.putLine(Hatena_InLine.parsePart(m[1], c));
         while (c.hasNext()) {
-            var l = c.peek();
-            if (l.match(_self.endpattern)) {
+            var m2;
+            if (m2 = c.peek().match(_self.endpattern)) {
                 c.next();
-                c.putLine(Hatena_InLine.parsePart(RegExp.$1, c));
+                c.putLine(Hatena_InLine.parsePart(m2[1], c));
                 break;
             }
-            var node = _this._findnode(l);
+            var node = _this._findnode(c.peek());
             if (node == null) {
                 break;
             }
@@ -818,13 +794,15 @@ Hatena_TaglineNode = function(){};
 Hatena_TaglineNode.prototype = Object.extend(new Hatena_SectionNode(), {
     init : function(){
         this.self.pattern = /^>(<.*>)<$/;
-        this.self.child_node_refs = Array();
+        this.self.child_node_refs = [];
     },
 
     parse : function(){
         var c = this.self.context;
-        if(!c.peek().match(this.self.pattern)) return;
-        c.next();
-        c.putLine(Hatena_InLine.parsePart(RegExp.$1, c));
+        var m;
+        if (!(m = c.next().match(this.self.pattern))) {
+            throw "parser error";
+        }
+        c.putLine(Hatena_InLine.parsePart(m[1], c));
     }
 });
