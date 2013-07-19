@@ -128,6 +128,23 @@ end
 </pre>
 """
 
+        it 'should parse code with parens', ->
+            i = """
+>|js|
+function hoge() {
+    return ((a && b) || (b && c));
+}
+||<
+"""
+            # console.log(parse(i))
+            assert.equal parse(i), """
+<pre class="prettyprint js">
+function hoge() {
+    return ((a &amp;&amp; b) || (b &amp;&amp; c));
+}
+</pre>
+"""
+
         it 'should parse no-tag notation', ->
             i = """
 abc

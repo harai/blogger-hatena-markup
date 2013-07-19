@@ -41,10 +41,6 @@ var bloggerHatenaMarkup = function () {
         return el.offsetWidth !== 0;
     };
     
-    var escapeBracket = function(str) {
-        return str.replace(/\[/g, "&#91").replace(/\]/g, "&#93").replace(/\n/, "");
-    };
-
     var waitLoop = function(fn) {
         var loop = function() {
             var res = fn();
@@ -507,7 +503,7 @@ var bloggerHatenaMarkup = function () {
             })();
 
             var showLink = function(link, innerText) {
-                var text = "[" + link + ":" + escapeBracket(innerText) + "]";
+                var text = "[" + link + ":" + String._escapeInsideLink(innerText) + "]";
                 insertTextUnderCursor(hatenaEditor, text);
                 
                 seePreview();
