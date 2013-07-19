@@ -635,15 +635,14 @@ Hatena_SectionNode.prototype = Object.extend(new Hatena_Node(), {
         this.self.childnode =
             ["h6", "h5", "h4", "blockquote", "dl", "list", "pre", "superpre", "table", "tagline", "tag",
             "gimage", "alias"];
-        this.self.child_node_refs = [];
     },
 
     parse: function() {
         var _this = this;
         var c = _this.self.context;
-        _this._set_child_node_refs();
+        var nodes = _this._get_child_node_refs();
         while (c.hasNext()) {
-            var node = _this._findnode(c.peek());
+            var node = _this._findnode(c.peek(), nodes);
             if (node == null) {
                 return;
             }
@@ -651,26 +650,24 @@ Hatena_SectionNode.prototype = Object.extend(new Hatena_Node(), {
         }
     },
 
-    _set_child_node_refs : function(){
+    _get_child_node_refs: function(){
         var _self = this.self;
         var c = _self.context;
-        c.indent(function() {
-            for(var i = 0; i < _self.childnode.length; i++) {
-                var node = _self.childnode[i];
-                var mod = 'Hatena_' + node.charAt(0).toUpperCase() + node.substr(1).toLowerCase() + 'Node';
-                var n = eval("new "+ mod +"()");
-                n._new({ context: c });
-                _self.child_node_refs.push(n);
-            }
+        
+        return _self.childnode.map(function(nodeStr) {
+            var mod = 'Hatena_' + nodeStr.charAt(0).toUpperCase() + nodeStr.substr(1).toLowerCase() + 'Node';
+            var n = eval("new "+ mod +"()");
+            n._new({ context: c });
+            return n;
         });
     },
 
-    _findnode : function(l){
+    _findnode: function(l, nodes) {
         var _self = this.self;
         var c = _self.context;
 
-        for (var i = 0; i < _self.child_node_refs.length; i++) {
-            var node = _self.child_node_refs[i];
+        for (var i = 0; i < nodes.length; i++) {
+            var node = nodes[i];
             var pat = node.self.pattern;
             if (pat == null) {
                 continue;
@@ -705,7 +702,6 @@ Hatena_BlockquoteNode.prototype = Object.extend(new Hatena_SectionNode(), {
         this.self.endpattern = /^<<$/;
         this.self.childnode =
             ["h4", "h5", "h6", "blockquote", "dl", "list", "pre", "superpre", "table", "gimage", "alias"];
-        this.self.child_node_refs = [];
     },
 
     parse : function(){
@@ -726,7 +722,7 @@ Hatena_BlockquoteNode.prototype = Object.extend(new Hatena_SectionNode(), {
             beginTag = "<blockquote>";
         }
         c.next();
-        _this._set_child_node_refs();
+        var nodes = _this._get_child_node_refs();
         c.putLine(beginTag);
         c.indent(function() {
             while (c.hasNext()) {
@@ -734,7 +730,7 @@ Hatena_BlockquoteNode.prototype = Object.extend(new Hatena_SectionNode(), {
                     c.next();
                     break;
                 }
-                var node = _this._findnode(c.peek());
+                var node = _this._findnode(c.peek(), nodes);
                 if (node == null) {
                     break;
                 }
@@ -756,7 +752,6 @@ Hatena_TagNode.prototype = Object.extend(new Hatena_SectionNode(), {
         this.self.endpattern = /^(.*>)<$/;
         this.self.childnode =
             ["h4", "h5", "h6", "blockquote", "dl", "list", "pre", "superpre", "table", "gimage", "alias"];
-        this.self.child_node_refs = [];
     },
 
     parse : function() {
@@ -768,7 +763,7 @@ Hatena_TagNode.prototype = Object.extend(new Hatena_SectionNode(), {
             throw "parser error";
         }
         c.suppressParagraph(true);
-        _this._set_child_node_refs();
+        var nodes = _this._get_child_node_refs();
         c.putLine(Hatena_InLine.parsePart(m[1], c));
         while (c.hasNext()) {
             var m2;
@@ -777,7 +772,7 @@ Hatena_TagNode.prototype = Object.extend(new Hatena_SectionNode(), {
                 c.putLine(Hatena_InLine.parsePart(m2[1], c));
                 break;
             }
-            var node = _this._findnode(c.peek());
+            var node = _this._findnode(c.peek(), nodes);
             if (node == null) {
                 break;
             }
@@ -794,7 +789,6 @@ Hatena_TaglineNode = function(){};
 Hatena_TaglineNode.prototype = Object.extend(new Hatena_SectionNode(), {
     init : function(){
         this.self.pattern = /^>(<.*>)<$/;
-        this.self.child_node_refs = [];
     },
 
     parse : function(){
