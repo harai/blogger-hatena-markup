@@ -190,3 +190,15 @@ foo
 <p>foo</p>
 
 """
+
+        it 'should parse inline gimage notation', ->
+            i = """
+hoge[gimage:2bbedba7-4c89-3d04-27d4-98d2c5891520:320]foo
+
+[alias:2bbedba7-4c89-3d04-27d4-98d2c5891520:http://exapmle.com/test.jpg]
+"""
+            # console.log(parse(i))
+            assert.equal parse(i), """
+<p>hoge<a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" /></a>foo</p>
+
+"""

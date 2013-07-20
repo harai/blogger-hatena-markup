@@ -231,24 +231,32 @@ Hatena_GimageNode.createGimages = function(id, prop, context) {
     var doc = context.getDocument();
     var url = alias.url.replace(/\/s\d+\//, "/s" + props[0] + "/");
     
-    var img = doc.createElement("img");
-    img.src = url;
+    var getA = function() {
+        var img = doc.createElement("img");
+        img.src = url;
+    
+        var a = doc.createElement("a");
+        a.href = alias.url;
+        if (pos === "left" || pos === "right") {
+            a.style = "clear: " + pos + "; float: " + pos + "; text-align: center";
+        }
+        a.appendChild(img);
+        
+        return a;
+    };
 
-    var a = doc.createElement("a");
-    a.href = alias.url;
-    if (pos === "left" || pos === "right") {
-        a.style = "clear: " + pos + "; float: " + pos + "; text-align: center";
-    }
-    a.appendChild(img);
-    
-    var figure = doc.createElement("figure");
-    if (pos === "center") {
-        figure.style = "clear: both; text-align: center;";
-    }
-    figure.appendChild(a);
-    
+    var wrapWithFigure = function(el) {
+        var figure = doc.createElement("figure");
+        if (pos === "center") {
+            figure.style = "clear: both; text-align: center;";
+        }
+        figure.appendChild(el);
+
+        return figure;
+    };
+
     var con = doc.createElement("div");
-    con.appendChild(figure);
+    con.appendChild(pos == null ? getA() : wrapWithFigure(getA()));
     
     return con.innerHTML;
 };
@@ -576,7 +584,7 @@ Hatena_TableNode.prototype = Object.extend(new Hatena_Node(), {
 Hatena_SectionNode = function() {};
 Hatena_SectionNode.prototype = Object.extend(new Hatena_Node(), {
     childNodes: ["h6", "h5", "h4", "blockquote", "dl", "list", "pre", "superpre", "table", "tagline", "tag",
-            "gimage", "alias"],
+        "gimage", "alias"],
 
     parse: function() {
         var _this = this;
@@ -632,7 +640,6 @@ Hatena_SectionNode.prototype = Object.extend(new Hatena_Node(), {
 });
 
 
-// modified by edvakf
 Hatena_BlockquoteNode = function(){};
 Hatena_BlockquoteNode.prototype = Object.extend(new Hatena_SectionNode(), {
     pattern: /^>(?:(https?:\/\/.*?)(:.*)?)?>$/,
