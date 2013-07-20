@@ -185,7 +185,9 @@ foo
             assert.equal parse(i), """
 <p>hoge</p>
 
-<figure><a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" /></a></figure>
+<figure style="clear: both; text-align: center;">
+    <a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" /></a>
+</figure>
 
 <p>foo</p>
 
@@ -200,5 +202,28 @@ hoge[gimage:2bbedba7-4c89-3d04-27d4-98d2c5891520:320]foo
             # console.log(parse(i))
             assert.equal parse(i), """
 <p>hoge<a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" /></a>foo</p>
+
+"""
+
+        it.skip 'should parse gimage with caption', ->
+            i = """
+hoge
+
+[gimage:2bbedba7-4c89-3d04-27d4-98d2c5891520:320,center]
+Figure 1. foo bar
+
+[alias:2bbedba7-4c89-3d04-27d4-98d2c5891520:http://exapmle.com/test.jpg]
+
+"""
+            # console.log(parse(i))
+            assert.equal parse(i), """
+<p>hoge</p>
+
+<figure>
+    <a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" /></a>
+    <figcaption>Figure 1. foo bar</figcaption>
+</figure>
+
+<p>foo</p>
 
 """

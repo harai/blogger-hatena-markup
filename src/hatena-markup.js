@@ -216,49 +216,59 @@ Hatena_AliasNode.prototype = Object.extend(new Hatena_Node(), {
 
 Hatena_GimageNode = function() {};
 Hatena_GimageNode.replaceGimagesInLine = function(text, context) {
-    return text.replace(/\[gimage:([\w-]+)(?::([^\]]+))?\]/g, function($0, id, prop) {
-        return Hatena_GimageNode.createGimages(id, prop, context);
+    return text.replace(/\[gimage:([\w-]+)(?::([^\]]+))?\]/g, function(matchStr, id, prop) {
+        return Hatena_GimageNode.createGimages(matchStr, id, prop, context, true);
     });
 };
-Hatena_GimageNode.createGimages = function(id, prop, context) {
+Hatena_GimageNode.createGimages = function(matchStr, id, prop, context, isInline) {
     var props = prop.split(/,/);
     var size = props[0];
     var pos = props[1] || null;
+
+    var inlineBuffer = [];
+    var output = function(str) {
+        if (!isInline) {
+            context.putLine(str);
+        } else {
+            inlineBuffer.push(str);
+        }
+    };
+
     var alias = context.getAlias(id);
     if (alias === null) {
-        return "";
+        output(matchStr);
+        return inlineBuffer.join("");
     }
-    var doc = context.getDocument();
-    var url = alias.url.replace(/\/s\d+\//, "/s" + props[0] + "/");
+
+    var url = size ? alias.url.replace(/\/s\d+\//, "/s" + size + "/") : alias.url;
     
-    var getA = function() {
-        var img = doc.createElement("img");
-        img.src = url;
-    
-        var a = doc.createElement("a");
-        a.href = alias.url;
+    var outputA = function() {
+        var style = "";
         if (pos === "left" || pos === "right") {
-            a.style = "clear: " + pos + "; float: " + pos + "; text-align: center";
+            style = ' style="clear: ' + pos + "; float: " + pos + '; text-align: center"';
         }
-        a.appendChild(img);
-        
-        return a;
+
+        output('<a href="' + String._escapeHTML(alias.url) + '"><img src="' +
+            String._escapeHTML(url) + '"' + style + " /></a>");
     };
 
-    var wrapWithFigure = function(el) {
-        var figure = doc.createElement("figure");
+    var figureTag = function(inner) {
+        var style = "";
         if (pos === "center") {
-            figure.style = "clear: both; text-align: center;";
+            style = ' style="clear: both; text-align: center;"';
         }
-        figure.appendChild(el);
-
-        return figure;
+        output("<figure" + style + ">");
+        context.indent(inner);
+        output("</figure>");
     };
 
-    var con = doc.createElement("div");
-    con.appendChild(pos == null ? getA() : wrapWithFigure(getA()));
-    
-    return con.innerHTML;
+    if (pos == null) {
+        outputA();
+    } else {
+        figureTag(outputA);
+    }
+
+    return inlineBuffer.join("");
 };
 Hatena_GimageNode.prototype = Object.extend(new Hatena_Node(), {
     pattern: /^\[gimage:([\w-]+)(?::([^\]]+))?\]\s*$/,
@@ -266,8 +276,7 @@ Hatena_GimageNode.prototype = Object.extend(new Hatena_Node(), {
     parse: function(match) {
         var c = this.self.context;
         c.next();
-        var text = Hatena_GimageNode.createGimages(match[1], match[2], c);
-        c.putLine(text);
+        Hatena_GimageNode.createGimages(match[0], match[1], match[2], c, false);
     }
 });
 
