@@ -112,16 +112,8 @@ Hatena_Context.prototype = {
         this.self.index = -1;
     },
 
-    getInputText: function() {
-        return this.self.text;
-    },
-
     getResult: function() {
         return this.self.resultLines.join("\n");
-    },
-
-    replaceResult: function(resultStr) {
-        this.self.resultLines = resultStr.split("\n");
     },
 
     putLine: function(line) {
@@ -214,73 +206,6 @@ Hatena_AliasNode.prototype = Object.extend(new Hatena_Node(), {
 });
 
 
-Hatena_GimageNode = function() {};
-Hatena_GimageNode.replaceGimagesInLine = function(text, context) {
-    return text.replace(/\[gimage:([\w-]+)(?::([^\]]+))?\]/g, function(matchStr, id, prop) {
-        return Hatena_GimageNode.createGimages(matchStr, id, prop, context, true);
-    });
-};
-Hatena_GimageNode.createGimages = function(matchStr, id, prop, context, isInline) {
-    var props = prop.split(/,/);
-    var size = props[0];
-    var pos = props[1] || null;
-
-    var inlineBuffer = [];
-    var output = function(str) {
-        if (!isInline) {
-            context.putLine(str);
-        } else {
-            inlineBuffer.push(str);
-        }
-    };
-
-    var alias = context.getAlias(id);
-    if (alias === null) {
-        output(matchStr);
-        return inlineBuffer.join("");
-    }
-
-    var url = size ? alias.url.replace(/\/s\d+\//, "/s" + size + "/") : alias.url;
-    
-    var outputA = function() {
-        var style = "";
-        if (pos === "left" || pos === "right") {
-            style = ' style="clear: ' + pos + "; float: " + pos + '; text-align: center"';
-        }
-
-        output('<a href="' + String._escapeHTML(alias.url) + '"><img src="' +
-            String._escapeHTML(url) + '"' + style + " /></a>");
-    };
-
-    var figureTag = function(inner) {
-        var style = "";
-        if (pos === "center") {
-            style = ' style="clear: both; text-align: center;"';
-        }
-        output("<figure" + style + ">");
-        context.indent(inner);
-        output("</figure>");
-    };
-
-    if (pos == null) {
-        outputA();
-    } else {
-        figureTag(outputA);
-    }
-
-    return inlineBuffer.join("");
-};
-Hatena_GimageNode.prototype = Object.extend(new Hatena_Node(), {
-    pattern: /^\[gimage:([\w-]+)(?::([^\]]+))?\]\s*$/,
-
-    parse: function(match) {
-        var c = this.self.context;
-        c.next();
-        Hatena_GimageNode.createGimages(match[0], match[1], match[2], c, false);
-    }
-});
-
-
 Hatena_LinkNode = {
     replaceLinksInLine: function(text) {
         return text.replace(/\[(https?:\/\/[^\]\s]+?)(?::([^\]\n]*))?\]/g, function($0, url, str) {
@@ -310,19 +235,19 @@ Hatena_InLine = {
 };
 
 
-Hatena_BrNode = function(){};
+Hatena_BrNode = function() {};
 Hatena_BrNode.prototype = Object.extend(new Hatena_Node(), {
-    parse : function(){
+    parse: function() {
         var c = this.self.context;
         var l = c.next();
         if (l.length != 0) {
             return;
         }
         var t = String.times(c.indentStr, c.indent);
-        if (c.getLastPut() == t + "<br>" || c.getLastPut() == t) {
-            c.putLine("<br>");
+        if (c.getLastPut() == t + "<br />" || c.getLastPut() == t) {
+            c.putLine("<br />");
         } else {
-            c.putLineWithoutIndent("");
+            c.putLineWithoutIndent("", true);
         }
     }
 });
@@ -604,10 +529,10 @@ Hatena_SectionNode.prototype = Object.extend(new Hatena_Node(), {
         }
     },
 
-    _getChildNodes: function(){
+    _getChildNodes: function(names) {
         var c = this.self.context;
-        
-        return this.childNodes.map(function(nodeStr) {
+        var childNames = names || this.childNodes;
+        return childNames.map(function(nodeStr) {
             var mod = 'Hatena_' + nodeStr.charAt(0).toUpperCase() + nodeStr.substr(1).toLowerCase() + 'Node';
             var n = eval("new "+ mod +"()");
             n._new({ context: c });
@@ -625,12 +550,8 @@ Hatena_SectionNode.prototype = Object.extend(new Hatena_Node(), {
 
         for (var i = 0; i < nodes.length; i++) {
             var node = nodes[i];
-            var pat = node.pattern;
-            if (pat == null) {
-                continue;
-            }
             var m;
-            if (m = l.match(pat)) {
+            if (m = l.match(node.pattern)) {
                 return { node: node, match: m };
             }
         }
@@ -725,5 +646,135 @@ Hatena_TaglineNode.prototype = Object.extend(new Hatena_SectionNode(), {
         var c = this.self.context;
         c.next();
         c.putLine(Hatena_InLine.parsePart(match[1], c));
+    }
+});
+
+
+Hatena_GimageNode = function() {};
+Hatena_GimageNode.replaceGimagesInLine = function(text, context) {
+    return text.replace(/\[gimage:([\w-]+)(?::([^\]]+))?\]/g, function(matchStr, id, prop) {
+        var imageProp = Hatena_GimageNode.getParameters(matchStr, id, prop, context, true);
+        return Hatena_GimageNode.getImgTag(imageProp);
+    });
+};
+Hatena_GimageNode.getParameters = function(matchStr, id, prop, context, isInline) {
+    var props = prop.split(/,/);
+    var size = props[0].match(/^\d+$/) ? props[0] : null;
+    var pos = props[1] || null;
+
+    var alias = context.getAlias(id);
+    var originlUrl = null;
+    var url = null;
+    if (alias !== null) {
+        originlUrl = alias.url;
+        url = size ? alias.url.replace(/\/s\d+\//, "/s" + size + "/") : originlUrl;
+    }
+
+    return {
+        size: size,
+        frameSize: size,
+        pos: pos,
+        originalUrl: originlUrl,
+        url: url,
+        isInline: isInline,
+        matchStr: matchStr
+    };
+};
+Hatena_GimageNode.getImgTag = function(args) {
+    if (args.url == null) {
+        return args.matchStr;
+    }
+    var beginA = args.isInline ? "" :
+        '<div style="text-align: center;"><a href="' + String._escapeHTML(args.originalUrl) + '">';
+    var endA = args.isInline ? "" : "</a></div>";
+
+    return beginA + '<img src="' + String._escapeHTML(args.url) + '" />' + endA;
+};
+Hatena_GimageNode.prototype = Object.extend(new Hatena_SectionNode(), {
+    pattern: /^\[gimage:([\w-]+)(?::([^\]]+))?\]\s*$/,
+    childNodes: ["tagline", "tag"],
+    denyChildNodes: ["h6", "h5", "h4", "blockquote", "dl", "list", "pre", "superpre", "table", "gimage", "alias"],
+
+    parse: function(match) {
+        var _this = this;
+        var c = _this.self.context;
+        c.next();
+
+        var imageProp = Hatena_GimageNode.getParameters(match[0], match[1], match[2], c, false);
+        var imgTag = Hatena_GimageNode.getImgTag(imageProp);
+
+        var getStyle = function() {
+            var style = ' style="';
+            if (imageProp.pos === "center") {
+                style += 'clear: both; margin-left: auto; margin-right: auto; ';
+            }
+            if (imageProp.pos === "left" || imageProp.pos === "right") {
+                style += 'clear: ' + imageProp.pos + "; float: " + imageProp.pos + '; ';
+            }
+            if (imageProp.frameSize !== null) {
+                style += "width: " + imageProp.frameSize + "px;";
+            }
+            style += '"';
+            return style;
+        };
+
+        var childNodes = _this._getChildNodes();
+        var denyChildNodes = _this._getChildNodes(_this.denyChildNodes);
+        
+
+        c.putLine("<figure" + getStyle() + ">");
+        c.indent(function() {
+            c.putLine(imgTag);
+            var hasCaption = false;
+            while (c.hasNext()) {
+                var n = _this._findNode(c.peek(), childNodes, denyChildNodes);
+                if (n == null) {
+                    break;
+                }
+                if (!hasCaption) {
+                    c.putLine("<figcaption>");
+                    hasCaption = true;
+                }
+                c.indent(function() {
+                    n.node.parse(n.match);
+                });
+            }
+            if (hasCaption) {
+                c.putLine("</figcaption>");
+            }
+        });
+        c.putLine("</figure>");
+    },
+
+    _findNode: function(line, nodes, denyNodes) {
+        var c = this.self.context;
+
+        for (var i = 0; i < nodes.length; i++) {
+            var node = nodes[i];
+            var m;
+            if (m = line.match(node.pattern)) {
+                return { node: node, match: m };
+            }
+        }
+        
+        for (var i = 0; i < denyNodes.length; i++) {
+            var denyNode = denyNodes[i];
+            if (line.match(denyNode.pattern)) {
+                return null;
+            }
+        }
+        
+        if (line.length == 0) {
+            return null;
+        }
+
+        var node;
+        if (c.isParagraphSuppressed()) {
+            node = new Hatena_CDataNode();
+        } else {
+            node = new Hatena_PNode();
+        }
+        node._new({ context: c });
+        return { node: node, match: null };
     }
 });

@@ -185,15 +185,15 @@ foo
             assert.equal parse(i), """
 <p>hoge</p>
 
-<figure style="clear: both; text-align: center;">
-    <a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" /></a>
+<figure style="clear: both; margin-left: auto; margin-right: auto; width: 320px;">
+    <div style="text-align: center;"><a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" /></a></div>
 </figure>
 
 <p>foo</p>
 
 """
 
-        it 'should parse inline gimage notation', ->
+        it 'should parse inline gimage notation (no link for the image)', ->
             i = """
 hoge[gimage:2bbedba7-4c89-3d04-27d4-98d2c5891520:320]foo
 
@@ -201,17 +201,18 @@ hoge[gimage:2bbedba7-4c89-3d04-27d4-98d2c5891520:320]foo
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<p>hoge<a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" /></a>foo</p>
+<p>hoge<img src="http://exapmle.com/test.jpg" />foo</p>
 
 """
 
-        it.skip 'should parse gimage with caption', ->
+        it 'should parse center gimage with caption', ->
             i = """
 hoge
 
 [gimage:2bbedba7-4c89-3d04-27d4-98d2c5891520:320,center]
 Figure 1. foo bar
 
+foo
 [alias:2bbedba7-4c89-3d04-27d4-98d2c5891520:http://exapmle.com/test.jpg]
 
 """
@@ -219,9 +220,91 @@ Figure 1. foo bar
             assert.equal parse(i), """
 <p>hoge</p>
 
-<figure>
-    <a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" /></a>
-    <figcaption>Figure 1. foo bar</figcaption>
+<figure style="clear: both; margin-left: auto; margin-right: auto; width: 320px;">
+    <div style="text-align: center;"><a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" /></a></div>
+    <figcaption>
+        <p>Figure 1. foo bar</p>
+    </figcaption>
+</figure>
+
+<p>foo</p>
+
+"""
+
+        it 'should parse left gimage with caption', ->
+            i = """
+hoge
+
+[gimage:2bbedba7-4c89-3d04-27d4-98d2c5891520:320,left]
+Figure 1. foo bar
+
+foo
+[alias:2bbedba7-4c89-3d04-27d4-98d2c5891520:http://exapmle.com/test.jpg]
+
+"""
+            # console.log(parse(i))
+            assert.equal parse(i), """
+<p>hoge</p>
+
+<figure style="clear: left; float: left; width: 320px;">
+    <div style="text-align: center;"><a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" /></a></div>
+    <figcaption>
+        <p>Figure 1. foo bar</p>
+    </figcaption>
+</figure>
+
+<p>foo</p>
+
+"""
+
+        it 'should parse right gimage with caption', ->
+            i = """
+hoge
+
+[gimage:2bbedba7-4c89-3d04-27d4-98d2c5891520:320,right]
+Figure 1. foo bar
+
+foo
+[alias:2bbedba7-4c89-3d04-27d4-98d2c5891520:http://exapmle.com/test.jpg]
+
+"""
+            # console.log(parse(i))
+            assert.equal parse(i), """
+<p>hoge</p>
+
+<figure style="clear: right; float: right; width: 320px;">
+    <div style="text-align: center;"><a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" /></a></div>
+    <figcaption>
+        <p>Figure 1. foo bar</p>
+    </figcaption>
+</figure>
+
+<p>foo</p>
+
+"""
+
+        it 'should parse gimage with multi-paragraph caption', ->
+            i = """
+hoge
+
+[gimage:2bbedba7-4c89-3d04-27d4-98d2c5891520:320,center]
+Figure 1. foo bar
+second paragraph
+
+foo
+[alias:2bbedba7-4c89-3d04-27d4-98d2c5891520:http://exapmle.com/test.jpg]
+
+"""
+            # console.log(parse(i))
+            assert.equal parse(i), """
+<p>hoge</p>
+
+<figure style="clear: both; margin-left: auto; margin-right: auto; width: 320px;">
+    <div style="text-align: center;"><a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" /></a></div>
+    <figcaption>
+        <p>Figure 1. foo bar</p>
+        <p>second paragraph</p>
+    </figcaption>
 </figure>
 
 <p>foo</p>
