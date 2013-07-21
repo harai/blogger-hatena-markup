@@ -658,9 +658,43 @@ Hatena_GimageNode.replaceGimagesInLine = function(text, context) {
     });
 };
 Hatena_GimageNode.getParameters = function(matchStr, id, prop, context, isInline) {
-    var props = prop.split(/,/);
-    var size = props[0].match(/^\d+$/) ? props[0] : null;
-    var pos = props[1] || null;
+    var sizes = [];
+    var pos = null;
+    var alt = "";
+    
+    prop.split(/,/).forEach(function(p) {
+        if (sizes.length < 2 && p.match(/^\d+$/)) {
+            sizes.push(+p);
+            return;
+        }
+        if (pos === null && [ "center", "left", "right" ].indexOf(p) !== -1) {
+            pos = p;
+            return;
+        }
+        alt = p;
+    });
+
+    var size = null;
+    var frameSize = null;
+    switch (sizes.length) {
+    case 0:
+        break;
+    case 1:
+        size = sizes[0];
+        frameSize = sizes[0];
+        break;
+    case 2:
+        if (sizes[1] < sizes[0]) {
+            size = sizes[1];
+            frameSize = sizes[0];
+        } else {
+            size = sizes[0];
+            frameSize = sizes[1];
+        }
+        break;
+    default:
+        throw "error";
+    }
 
     var alias = context.getAlias(id);
     var originlUrl = null;
@@ -671,8 +705,9 @@ Hatena_GimageNode.getParameters = function(matchStr, id, prop, context, isInline
     }
 
     return {
+        alt: alt,
         size: size,
-        frameSize: size,
+        frameSize: frameSize,
         pos: pos,
         originalUrl: originlUrl,
         url: url,
@@ -688,7 +723,7 @@ Hatena_GimageNode.getImgTag = function(args) {
         '<div style="text-align: center;"><a href="' + String._escapeHTML(args.originalUrl) + '">';
     var endA = args.isInline ? "" : "</a></div>";
 
-    return beginA + '<img src="' + String._escapeHTML(args.url) + '" />' + endA;
+    return beginA + '<img src="' + String._escapeHTML(args.url) + '" alt="' + String._escapeHTML(args.alt) + '" />' + endA;
 };
 Hatena_GimageNode.prototype = Object.extend(new Hatena_SectionNode(), {
     pattern: /^\[gimage:([\w-]+)(?::([^\]]+))?\]\s*$/,
