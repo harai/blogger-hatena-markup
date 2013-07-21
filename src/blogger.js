@@ -260,11 +260,10 @@ var bloggerHatenaMarkup = function () {
 
         var changeState = function(enable) {
             enabled = enable;
-            textarea.style.height = enable ? "10%" : "90%";
             textarea.disabled = enable;
-            hatenaPreview.style.height = hatenaLeftContainer.style.height = enable ? "90%" : "10%";
             hatenaEditorCheckbox.checked = enable;
             hatenaEditor.disabled = !enable;
+            resizer.resize();
             if (enable) {
                 hatenaEditorToTextareaSynchronizer.start();
                 resetCursorPosition(textarea);
@@ -321,6 +320,49 @@ var bloggerHatenaMarkup = function () {
                     clearTimeout(timer);
                 }
             }
+        };
+    })();
+
+    var resizer = (function() {
+        var resizeEvent = function() {
+            var container = textarea.parentNode;
+            console.debug("width: " + container.clientWidth + ", height: " + container.clientHeight);
+            if (container.clientWidth === 0) {
+                return;
+            }
+            if (container.clientWidth < 900) {
+                hatenaPreview.style.cssFloat = "none";
+                hatenaPreview.style.width = "100%";
+                hatenaLeftContainer.style.cssFloat = "none";
+                hatenaLeftContainer.style.width = "100%";
+
+                textarea.style.height = hatenaEditorToggler.isEnabled() ? "0%" : "90%";
+                hatenaLeftContainer.style.height = hatenaEditorToggler.isEnabled() ? "50%" : "10%";
+                hatenaPreview.style.height = hatenaEditorToggler.isEnabled() ? "50%" : "0%";
+                return;
+            }
+            if (container.clientWidth < 1400) {
+                hatenaPreview.style.width = "60%";
+                hatenaPreview.style.cssFloat = "right";
+                hatenaLeftContainer.style.width = "40%";
+                hatenaLeftContainer.style.cssFloat = "left";
+            } else {
+                hatenaPreview.style.width = "50%";
+                hatenaPreview.style.cssFloat = "right";
+                hatenaLeftContainer.style.width = "50%";
+                hatenaLeftContainer.style.cssFloat = "left";
+            }
+            textarea.style.height = hatenaEditorToggler.isEnabled() ? "10%" : "90%";
+            hatenaLeftContainer.style.height = hatenaEditorToggler.isEnabled() ? "90%" : "10%";
+            hatenaPreview.style.height = hatenaEditorToggler.isEnabled() ? "90%" : "10%";
+        };
+        
+        return {
+            init: function() {
+                window.addEventListener("resize", resizeEvent);
+                resizeEvent();
+            },
+            resize: resizeEvent,
         };
     })();
 
@@ -389,8 +431,6 @@ var bloggerHatenaMarkup = function () {
                 hatenaLeftContainer.setAttribute('style', [
                     'position:relative;',
                     'display:block;',
-                    'float:left;',
-                    'width:50%;',
                     BOX_SIZING
                 ].join(''));
                 hatenaLeftContainer.appendChild(createCheckbox());
@@ -403,8 +443,6 @@ var bloggerHatenaMarkup = function () {
                 hatenaPreview = document.createElement("div");
                 hatenaPreview.setAttribute('id', "hatenaPreview");
                 hatenaPreview.setAttribute('style', [
-                    'float:right;',
-                    'width:50%;',
                     'border:solid black 1px;',
                     'padding:5px;',
                     "overflow:scroll;",
@@ -579,6 +617,7 @@ var bloggerHatenaMarkup = function () {
         hatenaEditorToggler.init();
         setLinkAction();
         setDecoratorTagsAction();
+        resizer.init();
     };
 
     var initState = stateTemplate({
