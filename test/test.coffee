@@ -170,3 +170,30 @@ This project is hosted on [https://github.com/harai/blogger-hatena-markup:GitHub
             assert.equal parse(i), """
 <p>This project is hosted on <a href="https://github.com/harai/blogger-hatena-markup">GitHub</a>.</p>
 """
+
+        it 'should parse link without title', ->
+            i = """
+This project is hosted on [https://github.com/harai/blogger-hatena-markup].
+"""
+            # console.log(parse(i))
+            assert.equal parse(i), """
+<p>This project is hosted on <a href="https://github.com/harai/blogger-hatena-markup">https://github.com/harai/blogger-hatena-markup</a>.</p>
+"""
+
+        it 'should parse link without title, ended with :', ->
+            i = """
+This project is hosted on [https://github.com/harai/blogger-hatena-markup:].
+"""
+            # console.log(parse(i))
+            assert.equal parse(i), """
+<p>This project is hosted on <a href="https://github.com/harai/blogger-hatena-markup">https://github.com/harai/blogger-hatena-markup</a>.</p>
+"""
+
+        it 'should parse link with title containing :', ->
+            i = """
+This project is hosted on [https://github.com/harai/blogger-hatena-markup:Text::Hatena].
+"""
+            # console.log(parse(i))
+            assert.equal parse(i), """
+<p>This project is hosted on <a href="https://github.com/harai/blogger-hatena-markup">Text::Hatena</a>.</p>
+"""
