@@ -146,7 +146,7 @@ Hatena_Context.prototype = {
     },
 
     getAlias: function(id) {
-        return this.self.aliases[id];
+        return this.self.aliases[id] || null;
     },
 
     addAlias: function(id, url) {
@@ -181,6 +181,10 @@ Hatena_Node.prototype = {
     parse: function() {
         alert('die');
     },
+
+    canParse: function(line) {
+        return line.match(this.pattern);
+    }
 };
 
 
@@ -273,7 +277,7 @@ Hatena_DlNode.prototype = Object.extend(new Hatena_Node(), {
         c.putLine("<dl>");
         c.indent(function() {
             var m = null;
-            while (c.hasNext() && (m = c.peek().match(_this.pattern))) {
+            while (c.hasNext() && (m = _this.canParse(c.peek()))) {
                 c.next();
                 c.putLine("<dt>" + Hatena_InLine.parsePart(m[1], c) + "</dt>");
                 c.putLine("<dd>" + Hatena_InLine.parsePart(m[2], c) + "</dd>");
@@ -394,14 +398,14 @@ Hatena_ListNode.prototype = Object.extend(new Hatena_Node(), {
         c.indent(function() {
             while (l = c.peek()) {
                 var m;
-                if (!(m = l.match(_this.pattern))) {
+                if (!(m = _this.canParse(l))) {
                     break;
                 }
                 if (m[1].length == llevel) {
                     c.next();
                     var entry = m[2];
                     var l2, m2;
-                    if ((l2 = c.peek()) && (m2 = l2.match(_this.pattern)) && m2[1].length > llevel) {
+                    if ((l2 = c.peek()) && (m2 = _this.canParse(l2)) && m2[1].length > llevel) {
                         c.putLine("<li>" + Hatena_InLine.parsePart(m[2], c));
                     } else {
                         c.putLine("<li>" + Hatena_InLine.parsePart(m[2], c) + "</li>");
@@ -489,7 +493,7 @@ Hatena_TableNode.prototype = Object.extend(new Hatena_Node(), {
         c.putLine("<table>");
         c.indent(function() {
             while (c.hasNext()) {
-                if (!c.peek().match(_this.pattern)) {
+                if (!_this.canParse(c.peek())) {
                     break;
                 }
                 var l = c.next();
@@ -551,7 +555,7 @@ Hatena_SectionNode.prototype = Object.extend(new Hatena_Node(), {
         for (var i = 0; i < nodes.length; i++) {
             var node = nodes[i];
             var m;
-            if (m = l.match(node.pattern)) {
+            if (m = node.canParse(l)) {
                 return { node: node, match: m };
             }
         }
@@ -730,6 +734,14 @@ Hatena_GimageNode.prototype = Object.extend(new Hatena_SectionNode(), {
     childNodes: ["tagline", "tag"],
     denyChildNodes: ["h6", "h5", "h4", "blockquote", "dl", "list", "pre", "superpre", "table", "gimage", "alias"],
 
+    canParse: function(line) {
+        var m = line.match(this.pattern);
+        if (m == null) {
+            return null;
+        }
+        return this.self.context.getAlias(m[1]) ? m : null;
+    },
+
     parse: function(match) {
         var _this = this;
         var c = _this.self.context;
@@ -787,14 +799,14 @@ Hatena_GimageNode.prototype = Object.extend(new Hatena_SectionNode(), {
         for (var i = 0; i < nodes.length; i++) {
             var node = nodes[i];
             var m;
-            if (m = line.match(node.pattern)) {
+            if (m = node.canParse(line)) {
                 return { node: node, match: m };
             }
         }
         
         for (var i = 0; i < denyNodes.length; i++) {
             var denyNode = denyNodes[i];
-            if (line.match(denyNode.pattern)) {
+            if (denyNode.canParse(line)) {
                 return null;
             }
         }

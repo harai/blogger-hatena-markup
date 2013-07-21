@@ -1,5 +1,5 @@
 #!/bin/sh
 
-while inotifywait -e modify ./src/ ./test/; do
-  mocha --compilers coffee:coffee-script
+while inotifywait -r -e modify ./src/ ./test/; do
+  mocha --compilers coffee:coffee-script --recursive
 done
