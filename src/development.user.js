@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name           Blogger Hatena Markup
+// @name           Blogger Hatena Markup dev version
 // @namespace      https://github.com/harai/
 // @description    Hatena Markup for Blogger
 // @include        http://www.blogger.com/blogger.g*
