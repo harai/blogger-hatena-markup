@@ -522,7 +522,7 @@ Hatena_TableNode.prototype = Object.extend(new Hatena_Node(), {
 Hatena_SectionNode = function() {};
 Hatena_SectionNode.prototype = Object.extend(new Hatena_Node(), {
     childNodes: ["h6", "h5", "h4", "blockquote", "dl", "list", "pre", "superpre", "table", "tagline", "tag",
-        "gimage", "alias"],
+        "gimage", "alias", "more"],
 
     parse: function() {
         var _this = this;
@@ -727,12 +727,14 @@ Hatena_GimageNode.getImgTag = function(args) {
         '<div style="text-align: center;"><a href="' + String._escapeHTML(args.originalUrl) + '">';
     var endA = args.isInline ? "" : "</a></div>";
 
-    return beginA + '<img src="' + String._escapeHTML(args.url) + '" alt="' + String._escapeHTML(args.alt) + '" />' + endA;
+    return beginA + '<img src="' + String._escapeHTML(args.url) + '" alt="' +
+        String._escapeHTML(args.alt) + '" />' + endA;
 };
 Hatena_GimageNode.prototype = Object.extend(new Hatena_SectionNode(), {
     pattern: /^\[gimage:([\w-]+)(?::([^\]]+))?\]\s*$/,
     childNodes: ["tagline", "tag"],
-    denyChildNodes: ["h6", "h5", "h4", "blockquote", "dl", "list", "pre", "superpre", "table", "gimage", "alias"],
+    denyChildNodes: ["h6", "h5", "h4", "blockquote", "dl", "list", "pre", "superpre", "table",
+        "gimage", "alias", "more"],
 
     canParse: function(line) {
         var m = line.match(this.pattern);
@@ -823,5 +825,18 @@ Hatena_GimageNode.prototype = Object.extend(new Hatena_SectionNode(), {
         }
         node._new({ context: c });
         return { node: node, match: null };
+    }
+});
+
+
+Hatena_MoreNode = function(){};
+Hatena_MoreNode.prototype = Object.extend(new Hatena_SectionNode(), {
+    pattern: /^={3,}\s*$/,
+
+    parse: function(match) {
+        var c = this.self.context;
+        c.next();
+        c.putLineWithoutIndent("<!-- more -->");
+        c.putLineWithoutIndent('<!--hatenaPreview--><div class="previewOnly">&lt;!-- more --&gt;</div><!--/hatenaPreview-->');
     }
 });

@@ -197,3 +197,57 @@ This project is hosted on [https://github.com/harai/blogger-hatena-markup:Text::
             assert.equal parse(i), """
 <p>This project is hosted on <a href="https://github.com/harai/blogger-hatena-markup">Text::Hatena</a>.</p>
 """
+
+        it 'should parse more', ->
+            i = """
+hoge
+===
+foo bar
+"""
+            # console.log(parse(i))
+            assert.equal parse(i), """
+<p>hoge</p>
+<!-- more -->
+<!--hatenaPreview--><div class="previewOnly">&lt;!-- more --&gt;</div><!--/hatenaPreview-->
+<p>foo bar</p>
+"""
+
+        it 'should recognize == as normal text', ->
+            i = """
+hoge
+==
+foo bar
+"""
+            # console.log(parse(i))
+            assert.equal parse(i), """
+<p>hoge</p>
+<p>==</p>
+<p>foo bar</p>
+"""
+
+        it 'should recognize indented == as normal text', ->
+            i = """
+hoge
+ ===
+foo bar
+"""
+            # console.log(parse(i))
+            assert.equal parse(i), """
+<p>hoge</p>
+<p> ===</p>
+<p>foo bar</p>
+"""
+
+        it 'should parse repeated = as "more"', ->
+            i = """
+hoge
+==================
+foo bar
+"""
+            # console.log(parse(i))
+            assert.equal parse(i), """
+<p>hoge</p>
+<!-- more -->
+<!--hatenaPreview--><div class="previewOnly">&lt;!-- more --&gt;</div><!--/hatenaPreview-->
+<p>foo bar</p>
+"""

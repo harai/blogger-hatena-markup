@@ -506,7 +506,9 @@ var bloggerHatenaMarkup = function () {
 ,"#hatenaPreview center{text-align:center;}"
 ,"#hatenaPreview :link,#hatenaPreview :visited{text-decoration:underline;}"
 ,"#hatenaPreview :focus{outline:thin dotted invert;}"
+// original style
 ,"#hatenaPreview figure{display:block;margin-top:1em;margin-bottom:1em;margin-left:40px;margin-right:40px;}"
+,"#hatenaPreview div.previewOnly{margin:10px;font-size:13px;font-weight:bold;color:#888;}"
             ].join('\n');
             document.head.appendChild(style);
         };
@@ -664,9 +666,9 @@ var bloggerHatenaMarkup = function () {
     }
 
     function setTextArea() {
-        textarea.value = hatenaPreview.innerHTML + "\n<!--HatenaKihou\n" + 
-            hatenaEditor.value.replace(/-{2,}/g, 
-                function($0) {return '{{'+$0.length+' hyphens}}'}
+        var html = hatenaPreview.innerHTML.replace(/<!--hatenaPreview-->.*?<!--\/hatenaPreview-->/mg, "");
+        textarea.value = html + "\n<!--HatenaKihou\n" + hatenaEditor.value.replace(
+            /-{2,}/g, function($0) {return '{{'+$0.length+' hyphens}}'}
             ) + "\nHatenaKihou-->";
         resetCursorPosition(textarea);
     }
