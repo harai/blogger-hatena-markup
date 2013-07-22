@@ -84,7 +84,7 @@ foo
 <figure style="clear: both; margin-left: auto; margin-right: auto; width: 320px;">
     <div style="text-align: center;"><a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" alt="" /></a></div>
 </figure>
-<h4>Figure 1. foo bar</h4>
+<h4 class="bhm">Figure 1. foo bar</h4>
 
 <p>foo</p>
 

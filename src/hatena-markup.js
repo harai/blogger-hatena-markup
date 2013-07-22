@@ -354,7 +354,7 @@ Hatena_H4Node.prototype = Object.extend(new Hatena_Node(), {
     parse: function(match) {
         var c = this.self.context;
         c.next();
-        c.putLine("<h4>" + Hatena_InLine.parsePart(match[1], c) + "</h4>");
+        c.putLine('<h4 class="bhm">' + Hatena_InLine.parsePart(match[1], c) + "</h4>");
     }
 });
 
@@ -366,7 +366,7 @@ Hatena_H5Node.prototype = Object.extend(new Hatena_Node(), {
     parse: function(match) {
         var c = this.self.context;
         c.next();
-        c.putLine("<h5>" + Hatena_InLine.parsePart(match[1], c) + "</h5>");
+        c.putLine('<h5 class="bhm">' + Hatena_InLine.parsePart(match[1], c) + "</h5>");
     }
 });
 
@@ -378,7 +378,7 @@ Hatena_H6Node.prototype = Object.extend(new Hatena_Node(), {
     parse: function(match) {
         var c = this.self.context;
         c.next();
-        c.putLine("<h6>" + Hatena_InLine.parsePart(match[1], c) + "</h6>");
+        c.putLine('<h6 class="bhm">' + Hatena_InLine.parsePart(match[1], c) + "</h6>");
     }
 });
 

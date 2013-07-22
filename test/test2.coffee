@@ -23,7 +23,7 @@ describe 'Hatena', ->
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<h4>Hello, World!</h4>
+<h4 class="bhm">Hello, World!</h4>
 """
         it 'h4_2', ->
             i = """
@@ -32,7 +32,7 @@ This is Text::Hatena.
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<h4>Hello, World!</h4>
+<h4 class="bhm">Hello, World!</h4>
 <p>This is Text::Hatena.</p>
 """
         it 'h4_3', ->
@@ -56,11 +56,11 @@ Beautiful day!
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<h4>Good morning</h4>
+<h4 class="bhm">Good morning</h4>
 
 <p>It's morning.</p>
 
-<h4>Good afternoon</h4>
+<h4 class="bhm">Good afternoon</h4>
 
 <p>Beautiful day!</p>
 """
@@ -72,7 +72,7 @@ This is Text::Hatena.
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<h5>Hello, Japan!</h5>
+<h5 class="bhm">Hello, Japan!</h5>
 
 <p>This is Text::Hatena.</p>
 """
@@ -84,7 +84,7 @@ This is Text::Hatena.
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<h6>Hello, Tokyo!</h6>
+<h6 class="bhm">Hello, Tokyo!</h6>
 
 <p>This is Text::Hatena.</p>
 """

@@ -56,7 +56,7 @@ hoge[gimage:2bbedba7-4c89-3d04-27d4-98d2c5891520:50,100]foo
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<h4>hoge<img src="http://exapmle.com/s50/test.jpg" alt="" />foo</h4>
+<h4 class="bhm">hoge<img src="http://exapmle.com/s50/test.jpg" alt="" />foo</h4>
 
 """
 

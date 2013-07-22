@@ -352,9 +352,9 @@ var bloggerHatenaMarkup = function () {
                 hatenaLeftContainer.style.width = "50%";
                 hatenaLeftContainer.style.cssFloat = "left";
             }
-            textarea.style.height = hatenaEditorToggler.isEnabled() ? "10%" : "90%";
-            hatenaLeftContainer.style.height = hatenaEditorToggler.isEnabled() ? "90%" : "10%";
-            hatenaPreview.style.height = hatenaEditorToggler.isEnabled() ? "90%" : "10%";
+            textarea.style.height = hatenaEditorToggler.isEnabled() ? "0%" : "90%";
+            hatenaLeftContainer.style.height = hatenaEditorToggler.isEnabled() ? "100%" : "10%";
+            hatenaPreview.style.height = hatenaEditorToggler.isEnabled() ? "100%" : "10%";
         };
         
         return {
@@ -457,7 +457,7 @@ var bloggerHatenaMarkup = function () {
             box.appendChild(createHatenaPreview());
         };
 
-        var addStyles = function() {
+        var addPreviewStyles = function() {
             var style = document.createElement("style");
             style.textContent = [
                 ,"#postingHtmlBox {"
@@ -509,6 +509,7 @@ var bloggerHatenaMarkup = function () {
 // original style
 ,"#hatenaPreview figure{display:block;margin-top:1em;margin-bottom:1em;margin-left:40px;margin-right:40px;}"
 ,"#hatenaPreview div.previewOnly{margin:10px;font-size:13px;font-weight:bold;color:#888;}"
+,"#hatenaPreview h4,h5,h6{clear:both;}"
             ].join('\n');
             document.head.appendChild(style);
         };
@@ -614,7 +615,7 @@ var bloggerHatenaMarkup = function () {
             });
         };
 
-        addStyles();
+        addPreviewStyles();
         addHatenaElements();
         hatenaEditorToggler.init();
         setLinkAction();
@@ -665,9 +666,19 @@ var bloggerHatenaMarkup = function () {
         setTextArea();
     }
 
+    var styles = (function() {
+        var styles = [
+,'<style type="text/css" scoped="scoped">'
+,'h4.bhm,h5.bhm,h6.bhm{clear:both;}'
+,'</style>'
+        ].join("\n") + "\n";
+
+        return styles;
+    })();
+
     function setTextArea() {
-        var html = hatenaPreview.innerHTML.replace(/<!--hatenaPreview-->.*?<!--\/hatenaPreview-->/mg, "");
-        textarea.value = html + "\n<!--HatenaKihou\n" + hatenaEditor.value.replace(
+        var html = styles + hatenaPreview.innerHTML.replace(/<!--hatenaPreview-->.*?<!--\/hatenaPreview-->/mg, "");
+        textarea.value = styles + html + "\n<!--HatenaKihou\n" + hatenaEditor.value.replace(
             /-{2,}/g, function($0) {return '{{'+$0.length+' hyphens}}'}
             ) + "\nHatenaKihou-->";
         resetCursorPosition(textarea);
