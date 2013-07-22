@@ -724,7 +724,7 @@ Hatena_GimageNode.getImgTag = function(args) {
         return args.matchStr;
     }
     var beginA = args.isInline ? "" :
-        '<div style="text-align: center;"><a href="' + String._escapeHTML(args.originalUrl) + '">';
+        '<div class="bhmImage"><a href="' + String._escapeHTML(args.originalUrl) + '">';
     var endA = args.isInline ? "" : "</a></div>";
 
     return beginA + '<img src="' + String._escapeHTML(args.url) + '" alt="' +
@@ -753,17 +753,17 @@ Hatena_GimageNode.prototype = Object.extend(new Hatena_SectionNode(), {
         var imgTag = Hatena_GimageNode.getImgTag(imageProp);
 
         var getStyle = function() {
-            var style = ' style="';
+            var style = "";
             if (imageProp.pos === "center") {
-                style += 'clear: both; margin-left: auto; margin-right: auto; ';
-            }
-            if (imageProp.pos === "left" || imageProp.pos === "right") {
-                style += 'clear: ' + imageProp.pos + "; float: " + imageProp.pos + '; ';
+                style += ' class="bhmCenter"';
+            } else if (imageProp.pos === "left") {
+                style += ' class="bhmLeft"';
+            } else if (imageProp.pos === "right") {
+                style += ' class="bhmRight"';
             }
             if (imageProp.frameSize !== null) {
-                style += "width: " + imageProp.frameSize + "px;";
+                style += ' style="width: ' + imageProp.frameSize + 'px;"';
             }
-            style += '"';
             return style;
         };
 

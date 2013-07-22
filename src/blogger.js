@@ -509,7 +509,11 @@ var bloggerHatenaMarkup = function () {
 // original style
 ,"#hatenaPreview figure{display:block;margin-top:1em;margin-bottom:1em;margin-left:40px;margin-right:40px;}"
 ,"#hatenaPreview div.previewOnly{margin:10px;font-size:13px;font-weight:bold;color:#888;}"
-,"#hatenaPreview h4,h5,h6{clear:both;}"
+,"#hatenaPreview h4,#hatenaPreview h5,#hatenaPreview h6{clear:both;}"
+,'#hatenaPreview figure.bhmLeft{clear:left;float:left;}'
+,'#hatenaPreview figure.bhmRight{clear:right;float:right;}'
+,'#hatenaPreview figure.bhmCenter{clear:both;margin-left:auto;margin-right:auto;}'
+,'#hatenaPreview figure>div.bhmImage{text-align:center;}'
             ].join('\n');
             document.head.appendChild(style);
         };
@@ -670,6 +674,10 @@ var bloggerHatenaMarkup = function () {
         var styles = [
 ,'<style type="text/css" scoped="scoped">'
 ,'h4.bhm,h5.bhm,h6.bhm{clear:both;}'
+,'figure.bhmLeft{clear:left;float:left;}'
+,'figure.bhmRight{clear:right;float:right;}'
+,'figure.bhmCenter{clear:both;margin-left:auto;margin-right:auto;}'
+,'figure>div.bhmImage{text-align:center;}'
 ,'</style>'
         ].join("\n") + "\n";
 
