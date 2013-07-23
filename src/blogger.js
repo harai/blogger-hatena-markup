@@ -120,11 +120,12 @@ var bloggerHatenaMarkup = function () {
         postObserving: function() {
             var waitLoop = function() {
                 if (!textarea.value.match(/^\s*$/)) {
-                    setTimeout(textareaToHatenaEditor, 50);
+                    textareaToHatenaEditor();
                 } else {
                     setTimeout(waitLoop, 100);
                 }
             };
+            textareaToHatenaEditor();
             waitLoop();
         },
         nextState: function() {
@@ -656,10 +657,12 @@ var bloggerHatenaMarkup = function () {
         var h = extractHatenaOrNull(textarea.value);
         if (h === null) {
             hatenaEditor.value = "";
+            hatenaPreview.innerHTML = "";
+            hatenaEditorToggler.disable();
         } else {
-            hatenaEditorToggler.enable();
             hatenaEditor.value = h;
             seePreview();
+            hatenaEditorToggler.enable();
         }
     };
     
