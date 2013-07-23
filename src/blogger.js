@@ -79,13 +79,13 @@ var bloggerHatenaMarkup = function () {
     var stateTemplate = function(args) {
         var name = args.name ? args.name : "anonymous state"
         return function() {
-            console.debug(">>> on " + name);
+            // console.debug(">>> on " + name);
             if (args.initialize) {
                 args.initialize();
             }
 
             var observer = new MutationObserver(function() {
-                console.debug(">>> on " + name + " mutation found");
+                // console.debug(">>> on " + name + " mutation found");
                 if (args.continueObserving) {
                     if (args.continueObserving()) {
                         return;
@@ -327,7 +327,6 @@ var bloggerHatenaMarkup = function () {
     var resizer = (function() {
         var resizeEvent = function() {
             var container = textarea.parentNode;
-            console.debug("width: " + container.clientWidth + ", height: " + container.clientHeight);
             if (container.clientWidth === 0) {
                 return;
             }
