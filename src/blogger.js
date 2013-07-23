@@ -685,7 +685,7 @@ var bloggerHatenaMarkup = function () {
     })();
 
     function setTextArea() {
-        var html = styles + hatenaPreview.innerHTML.replace(/<!--hatenaPreview-->.*?<!--\/hatenaPreview-->/mg, "");
+        var html = hatenaPreview.innerHTML.replace(/<!--hatenaPreview-->.*?<!--\/hatenaPreview-->/mg, "");
         textarea.value = styles + html + "\n<!--HatenaKihou\n" + hatenaEditor.value.replace(
             /-{2,}/g, function($0) {return '{{'+$0.length+' hyphens}}'}
             ) + "\nHatenaKihou-->";
