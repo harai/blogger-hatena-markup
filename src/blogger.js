@@ -20,8 +20,12 @@ var bloggerHatenaMarkup = function () {
         textarea.focus();
     };
 
-    var resetCursorPosition = function(textarea) {
-        textarea.setSelectionRange(0, 0);
+    var resetTextareaForCatchingInsertion = function(textarea) {
+        // the leading "\n" is necessary for matching HTML elements inserted by clicking buttons.
+        if (textarea.value.indexOf("\n") != 0) {
+            textarea.value = "\n" + textarea.value;
+        }
+        textarea.setSelectionRange(0, 0); // needed?
     };
 
     var getSelection = function(textarea) {
@@ -29,6 +33,16 @@ var bloggerHatenaMarkup = function () {
         var end = textarea.selectionEnd;
         return textarea.value.substring(start, end);
     };
+
+    // leading space in the textarea value is a prerequisite to call this
+    var getTextInsertedByBlogger = function(textarea) {
+        var end = textarea.value.indexOf("\n");
+        if (end === -1) {
+            end = textarea.value.length;
+        }
+        var text = textarea.value.substring(0, end);
+        return text;
+    }
 
     var generateGuid = function() {
         var s4 = function() {
@@ -135,11 +149,6 @@ var bloggerHatenaMarkup = function () {
 
     var imageDialogShownState = stateTemplate({
         name: "imageDialogShownState",
-        initialize: function() {
-            if (hatenaEditorToggler.isEnabled()) {
-                textarea.setSelectionRange(0, 0);
-            }
-        },
         observingNode: function() {
             return document.body;
         },
@@ -180,7 +189,7 @@ var bloggerHatenaMarkup = function () {
 
     var addImageMarkup = function() {
         var extractImageData = function() {
-            var addedHtml = textarea.value.substr(0, textarea.selectionStart);
+            var addedHtml = getTextInsertedByBlogger(textarea);
             if (addedHtml.length === 0) {
                 return null;
             }
@@ -227,7 +236,7 @@ var bloggerHatenaMarkup = function () {
             return idata;
         };
         
-        var outputToTextarea = function(imageData) {
+        var outputToHatenaEditor = function(imageData) {
             var str = imageData.map(function(image) {
                 return "[gimage:" + image.id + ":" + image.size +
                     (image.pos !== null ? ("," + image.pos) : "") + "]\n";
@@ -247,7 +256,7 @@ var bloggerHatenaMarkup = function () {
         if (imaged == null) {
             return;
         }
-        outputToTextarea(imaged);
+        outputToHatenaEditor(imaged);
         
         seePreview();
     };
@@ -267,7 +276,7 @@ var bloggerHatenaMarkup = function () {
             resizer.resize();
             if (enable) {
                 hatenaEditorToTextareaSynchronizer.start();
-                resetCursorPosition(textarea);
+                resetTextareaForCatchingInsertion(textarea);
             } else {
                 hatenaEditorToTextareaSynchronizer.stop();
             }
@@ -330,13 +339,15 @@ var bloggerHatenaMarkup = function () {
             if (container.clientWidth === 0) {
                 return;
             }
+            textarea.style.height = hatenaEditorToggler.isEnabled() ? "0%" : "90%";
+            textarea.style.visibility = hatenaEditorToggler.isEnabled() ? "hidden" : "visible";
+
             if (container.clientWidth < 900) {
                 hatenaPreview.style.cssFloat = "none";
                 hatenaPreview.style.width = "100%";
                 hatenaLeftContainer.style.cssFloat = "none";
                 hatenaLeftContainer.style.width = "100%";
 
-                textarea.style.height = hatenaEditorToggler.isEnabled() ? "0%" : "90%";
                 hatenaLeftContainer.style.height = hatenaEditorToggler.isEnabled() ? "50%" : "10%";
                 hatenaPreview.style.height = hatenaEditorToggler.isEnabled() ? "50%" : "0%";
                 return;
@@ -352,7 +363,6 @@ var bloggerHatenaMarkup = function () {
                 hatenaLeftContainer.style.width = "50%";
                 hatenaLeftContainer.style.cssFloat = "left";
             }
-            textarea.style.height = hatenaEditorToggler.isEnabled() ? "0%" : "90%";
             hatenaLeftContainer.style.height = hatenaEditorToggler.isEnabled() ? "100%" : "10%";
             hatenaPreview.style.height = hatenaEditorToggler.isEnabled() ? "100%" : "10%";
         };
@@ -566,14 +576,13 @@ var bloggerHatenaMarkup = function () {
             };
 
             var getLink = function() {
-                if (textarea.selectionEnd === 0) {
+                var inserted = getTextInsertedByBlogger(textarea);
+                if (inserted === "") {
                     return;
                 }
 
-                textarea.setSelectionRange(0, textarea.selectionEnd + "</a>".length);
-                var a = getSelection(textarea);
                 var c = document.createElement("div");
-                c.innerHTML = a;
+                c.innerHTML = inserted;
                 var href = c.firstElementChild.href;
 
                 var innerText = getSelection(hatenaEditor);
@@ -691,7 +700,7 @@ var bloggerHatenaMarkup = function () {
         textarea.value = styles + html + "\n<!--HatenaKihou\n" + hatenaEditor.value.replace(
             /-{2,}/g, function($0) {return '{{'+$0.length+' hyphens}}'}
             ) + "\nHatenaKihou-->";
-        resetCursorPosition(textarea);
+        resetTextareaForCatchingInsertion(textarea);
     }
 };
 
