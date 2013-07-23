@@ -469,7 +469,7 @@ Hatena_SuperpreNode.prototype = Object.extend(new Hatena_Node(), {
     parse: function(match) {
         var c = this.self.context;
         c.next();
-        c.putLine(match[1] !== "" ? '<pre class="prettyprint ' + match[1] + '">' : "<pre>"); // TODO add <code> and </code>
+        c.putLine(match[1] !== "" ? '<pre class="prettyprint lang-' + match[1] + '">' : "<pre>"); // TODO add <code> and </code>
         while (c.hasNext()) {
             if (c.peek().match(this.endPattern)) {
                 c.next();

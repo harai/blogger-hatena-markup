@@ -121,7 +121,7 @@ end
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<pre class="prettyprint rb">
+<pre class="prettyprint lang-rb">
 def hoge
   puts 'foobar'
 end
@@ -138,7 +138,7 @@ function hoge() {
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<pre class="prettyprint js">
+<pre class="prettyprint lang-js">
 function hoge() {
     return ((a &amp;&amp; b) || (b &amp;&amp; c));
 }

@@ -373,7 +373,7 @@ my $url = 'http://d.hatena.ne.jp/';
 # """
         it 'super_pre2', ->
             i = """
->|perl|
+>|pl|
 #!/usr/bin/perl
 
 my $url = 'http://d.hatena.ne.jp/';
@@ -381,7 +381,7 @@ my $url = 'http://d.hatena.ne.jp/';
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<pre class="prettyprint perl">
+<pre class="prettyprint lang-pl">
 #!/usr/bin/perl
 
 my $url = 'http://d.hatena.ne.jp/';
