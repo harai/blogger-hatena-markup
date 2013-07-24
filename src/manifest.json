@@ -1,0 +1,15 @@
+{
+   "manifest_version": 2,
+   "content_scripts": [ {
+      "exclude_globs": [  ],
+      "exclude_matches": [  ],
+      "include_globs": [ "http://www.blogger.com/blogger.g*" ],
+      "js": [ "blogger-hatena-markup.user.js" ],
+      "matches": [ "http://*/*", "https://*/*" ],
+      "run_at": "document_end"
+   } ],
+   "converted_from_user_script": true,
+   "description": "Hatena Markup for Blogger",
+   "name": "Blogger Hatena Markup",
+   "version": "0.0"
+}

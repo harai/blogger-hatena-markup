@@ -1,0 +1,11 @@
+#!/bin/sh
+
+if test $# -eq 0
+then
+    echo "Need a version number"
+    exit 1
+fi
+
+bin/create_production
+ruby -e 'while s = $stdin.gets; s.sub!(%q|"version": "0.0"|, %Q|"version": "#{ARGV[0]}"|); puts s; end' -- $1 < output/manifest.json > temp/manifest.json
+ruby -e 'while s = $stdin.gets; s.sub!(%q|@version 0.0|, %Q|@version #{ARGV[0]}|); puts s; end' -- $1 < output/blogger-hatena-markup.user.js > temp/blogger-hatena-markup.user.js
