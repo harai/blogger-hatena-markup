@@ -600,7 +600,11 @@ var bloggerHatenaMarkup = function () {
             waitLoop(function() {
                 var link = null;
                 if (link = document.getElementById("link")) {
-                    link.addEventListener("click", getLink);
+                    link.addEventListener("click", function() {
+                        if (emEditorToggler.isEnabled()) {
+                            getLink();
+                        }
+                    });
                     return true;
                 }
                 return false;
@@ -620,8 +624,10 @@ var bloggerHatenaMarkup = function () {
                     var el = null;
                     if (el = document.getElementById(tag.id)) {
                         el.addEventListener("click", function() {
-                            insertTag(emEditor, tag.sTag, tag.eTag);
-                            seePreview();
+                            if (emEditorToggler.isEnabled()) {
+                                insertTag(emEditor, tag.sTag, tag.eTag);
+                                seePreview();
+                            }
                         });
                         return true;
                     }
