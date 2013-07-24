@@ -84,11 +84,11 @@ var bloggerHatenaMarkup = function () {
 
     var hatena = new Hatena({ doc: document });
     var textarea = null;
-    var hatenaEditor = null;
-    var hatenaEditorLoading = null;
-    var hatenaEditorCheckbox = null;
-    var hatenaPreview = null;
-    var hatenaLeftContainer = null;
+    var emEditor = null;
+    var emEditorLoading = null;
+    var emEditorCheckbox = null;
+    var emPreview = null;
+    var emLeftContainer = null;
     
     var stateTemplate = function(args) {
         var name = args.name ? args.name : "anonymous state"
@@ -134,12 +134,12 @@ var bloggerHatenaMarkup = function () {
         postObserving: function() {
             var waitLoop = function() {
                 if (!textarea.value.match(/^\s*$/)) {
-                    textareaToHatenaEditor();
+                    textareaToemEditor();
                 } else {
                     setTimeout(waitLoop, 100);
                 }
             };
-            textareaToHatenaEditor();
+            textareaToemEditor();
             waitLoop();
         },
         nextState: function() {
@@ -157,7 +157,7 @@ var bloggerHatenaMarkup = function () {
             return isImageDialogShown() || isModalDialogShown();
         },
         postObserving: function() {
-            if (hatenaEditorToggler.isEnabled()) {
+            if (emEditorToggler.isEnabled()) {
                 addImageMarkup();
             }
         },
@@ -179,7 +179,7 @@ var bloggerHatenaMarkup = function () {
             if (isImageDialogShown()) {
                 return imageDialogShownState;
             } else if (!isShown(textarea)) {
-                hatenaEditorToggler.disable();
+                emEditorToggler.disable();
                 return postingHtmlBoxHiddenState;
             } else {
                 throw "does not happen";
@@ -236,56 +236,56 @@ var bloggerHatenaMarkup = function () {
             return idata;
         };
         
-        var outputToHatenaEditor = function(imageData) {
+        var outputToemEditor = function(imageData) {
             var str = imageData.map(function(image) {
                 return "[gimage:" + image.id + ":" + image.size +
                     (image.pos !== null ? ("," + image.pos) : "") + "]\n";
             }).join("");
-            insertTextUnderCursor(hatenaEditor, str);
+            insertTextUnderCursor(emEditor, str);
             
-            var currentPos = hatenaEditor.selectionStart;
-            hatenaEditor.setSelectionRange(hatenaEditor.value.length, hatenaEditor.value.length);
+            var currentPos = emEditor.selectionStart;
+            emEditor.setSelectionRange(emEditor.value.length, emEditor.value.length);
             var str2 = imageData.map(function(image) {
                 return "\n[alias:" + image.id + ":" + image.url + "]";
             }).join("");
-            insertTextUnderCursor(hatenaEditor, str2);
-            hatenaEditor.setSelectionRange(currentPos, currentPos);
+            insertTextUnderCursor(emEditor, str2);
+            emEditor.setSelectionRange(currentPos, currentPos);
         };
         
         var imaged = extractImageData();
         if (imaged == null) {
             return;
         }
-        outputToHatenaEditor(imaged);
+        outputToemEditor(imaged);
         
         seePreview();
     };
 
-    var setHatenaEditorLoading = function(isLoading) {
-        hatenaEditorLoading.style.display = isLoading ? "block" : "none";
+    var setemEditorLoading = function(isLoading) {
+        emEditorLoading.style.display = isLoading ? "block" : "none";
     };
 
-    var hatenaEditorToggler = (function() {
+    var emEditorToggler = (function() {
         var enabled = false;
 
         var changeState = function(enable) {
             enabled = enable;
             textarea.disabled = enable;
-            hatenaEditorCheckbox.checked = enable;
-            hatenaEditor.disabled = !enable;
+            emEditorCheckbox.checked = enable;
+            emEditor.disabled = !enable;
             resizer.resize();
             if (enable) {
-                hatenaEditorToTextareaSynchronizer.start();
+                emEditorToTextareaSynchronizer.start();
                 resetTextareaForCatchingInsertion(textarea);
             } else {
-                hatenaEditorToTextareaSynchronizer.stop();
+                emEditorToTextareaSynchronizer.stop();
             }
         }
 
         return {
             init: function() {
-                hatenaEditorToTextareaSynchronizer.init();
-                hatenaEditorCheckbox.addEventListener("click", function(e) {
+                emEditorToTextareaSynchronizer.init();
+                emEditorCheckbox.addEventListener("click", function(e) {
                     changeState(!enabled);
                 }, false);
 
@@ -304,13 +304,13 @@ var bloggerHatenaMarkup = function () {
         };
     })();
 
-    var hatenaEditorToTextareaSynchronizer = (function() {
+    var emEditorToTextareaSynchronizer = (function() {
         var timer = null;
         var isOn = false;
 
         return {
             init: function() {
-                hatenaEditor.addEventListener('input', function() {
+                emEditor.addEventListener('input', function() {
                     if (isOn) {
                         clearTimeout(timer);
                         timer = setTimeout(seePreview, 500);
@@ -339,32 +339,32 @@ var bloggerHatenaMarkup = function () {
             if (container.clientWidth === 0) {
                 return;
             }
-            textarea.style.height = hatenaEditorToggler.isEnabled() ? "0%" : "90%";
-            textarea.style.visibility = hatenaEditorToggler.isEnabled() ? "hidden" : "visible";
+            textarea.style.height = emEditorToggler.isEnabled() ? "0%" : "90%";
+            textarea.style.visibility = emEditorToggler.isEnabled() ? "hidden" : "visible";
 
             if (container.clientWidth < 900) {
-                hatenaPreview.style.cssFloat = "none";
-                hatenaPreview.style.width = "100%";
-                hatenaLeftContainer.style.cssFloat = "none";
-                hatenaLeftContainer.style.width = "100%";
+                emPreview.style.cssFloat = "none";
+                emPreview.style.width = "100%";
+                emLeftContainer.style.cssFloat = "none";
+                emLeftContainer.style.width = "100%";
 
-                hatenaLeftContainer.style.height = hatenaEditorToggler.isEnabled() ? "50%" : "10%";
-                hatenaPreview.style.height = hatenaEditorToggler.isEnabled() ? "50%" : "0%";
+                emLeftContainer.style.height = emEditorToggler.isEnabled() ? "50%" : "10%";
+                emPreview.style.height = emEditorToggler.isEnabled() ? "50%" : "0%";
                 return;
             }
             if (container.clientWidth < 1400) {
-                hatenaPreview.style.width = "60%";
-                hatenaPreview.style.cssFloat = "right";
-                hatenaLeftContainer.style.width = "40%";
-                hatenaLeftContainer.style.cssFloat = "left";
+                emPreview.style.width = "60%";
+                emPreview.style.cssFloat = "right";
+                emLeftContainer.style.width = "40%";
+                emLeftContainer.style.cssFloat = "left";
             } else {
-                hatenaPreview.style.width = "50%";
-                hatenaPreview.style.cssFloat = "right";
-                hatenaLeftContainer.style.width = "50%";
-                hatenaLeftContainer.style.cssFloat = "left";
+                emPreview.style.width = "50%";
+                emPreview.style.cssFloat = "right";
+                emLeftContainer.style.width = "50%";
+                emLeftContainer.style.cssFloat = "left";
             }
-            hatenaLeftContainer.style.height = hatenaEditorToggler.isEnabled() ? "100%" : "10%";
-            hatenaPreview.style.height = hatenaEditorToggler.isEnabled() ? "100%" : "10%";
+            emLeftContainer.style.height = emEditorToggler.isEnabled() ? "100%" : "10%";
+            emPreview.style.height = emEditorToggler.isEnabled() ? "100%" : "10%";
         };
         
         return {
@@ -380,10 +380,10 @@ var bloggerHatenaMarkup = function () {
         var BOX_SIZING = "-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;";
         var addHatenaElements = function() {
             var createLeftContainer = function() {
-                var createHatenaEditor = function() {
-                    hatenaEditor = document.createElement("textarea");
-                    hatenaEditor.setAttribute("id", "hatenaEditor");
-                    hatenaEditor.setAttribute('style', [
+                var createemEditor = function() {
+                    emEditor = document.createElement("textarea");
+                    emEditor.setAttribute("id", "emEditor");
+                    emEditor.setAttribute('style', [
                         "width:100%;",
                         "height:100%;",
                         'resize:none;',
@@ -391,8 +391,8 @@ var bloggerHatenaMarkup = function () {
                         BOX_SIZING
                     ].join(''));
 
-                    hatenaEditorLoading = document.createElement("div");
-                    hatenaEditorLoading.setAttribute("style", [
+                    emEditorLoading = document.createElement("div");
+                    emEditorLoading.setAttribute("style", [
                         "position: absolute;",
                         "left: 20px;",
                         "top: 20px;",
@@ -401,70 +401,70 @@ var bloggerHatenaMarkup = function () {
                         "font-weight: bold;",
                         "font-size: 20px;",
                     ].join(''));
-                    hatenaEditorLoading.appendChild(document.createTextNode("Loading..."));
+                    emEditorLoading.appendChild(document.createTextNode("Loading..."));
 
-                    var hatenaEditorDiv = document.createElement("div");
-                    hatenaEditorDiv.setAttribute('style', [
+                    var emEditorDiv = document.createElement("div");
+                    emEditorDiv.setAttribute('style', [
                         "top:30px;",
                         "bottom:0;",
                         "position:absolute;",
                         "width:100%;",
                         BOX_SIZING
                     ].join(''));
-                    hatenaEditorDiv.appendChild(hatenaEditor);
-                    hatenaEditorDiv.appendChild(hatenaEditorLoading);
+                    emEditorDiv.appendChild(emEditor);
+                    emEditorDiv.appendChild(emEditorLoading);
 
-                    return hatenaEditorDiv;
+                    return emEditorDiv;
                 };
 
                 var createCheckbox = function() {
-                    hatenaEditorCheckbox = document.createElement("input");
-                    hatenaEditorCheckbox.setAttribute("type", "checkbox");
-                    hatenaEditorCheckbox.setAttribute("id", "hatenaEditorCheckbox");
+                    emEditorCheckbox = document.createElement("input");
+                    emEditorCheckbox.setAttribute("type", "checkbox");
+                    emEditorCheckbox.setAttribute("id", "emEditorCheckbox");
 
                     var label = document.createElement("label");
-                    label.setAttribute("for", "hatenaEditorCheckbox");
-                    label.appendChild(document.createTextNode("Use Hatena Markup"));
+                    label.setAttribute("for", "emEditorCheckbox");
+                    label.appendChild(document.createTextNode("Use Extreme Markup"));
 
                     var checkboxDiv = document.createElement("div");
                     checkboxDiv.setAttribute('style', [
                         "height:30px;",
                         'padding:5px;'
                     ].join(''));
-                    checkboxDiv.appendChild(hatenaEditorCheckbox);
+                    checkboxDiv.appendChild(emEditorCheckbox);
                     checkboxDiv.appendChild(label);
 
                     return checkboxDiv;
                 };
 
-                hatenaLeftContainer = document.createElement("div");
-                hatenaLeftContainer.setAttribute('style', [
+                emLeftContainer = document.createElement("div");
+                emLeftContainer.setAttribute('style', [
                     'position:relative;',
                     'display:block;',
                     BOX_SIZING
                 ].join(''));
-                hatenaLeftContainer.appendChild(createCheckbox());
-                hatenaLeftContainer.appendChild(createHatenaEditor());
+                emLeftContainer.appendChild(createCheckbox());
+                emLeftContainer.appendChild(createemEditor());
 
-                return hatenaLeftContainer;
+                return emLeftContainer;
             };
 
-            var createHatenaPreview = function() {
-                hatenaPreview = document.createElement("div");
-                hatenaPreview.setAttribute('id', "hatenaPreview");
-                hatenaPreview.setAttribute('style', [
+            var createemPreview = function() {
+                emPreview = document.createElement("div");
+                emPreview.setAttribute('id', "emPreview");
+                emPreview.setAttribute('style', [
                     'border:solid black 1px;',
                     'padding:5px;',
                     "overflow:scroll;",
                     BOX_SIZING
                 ].join(''));
 
-                return hatenaPreview;
+                return emPreview;
             };
 
             var box = textarea.parentElement;
             box.appendChild(createLeftContainer());
-            box.appendChild(createHatenaPreview());
+            box.appendChild(createemPreview());
         };
 
         var addPreviewStyles = function() {
@@ -474,56 +474,58 @@ var bloggerHatenaMarkup = function () {
                     ,BOX_SIZING
                 ,"}"
 // based on http://www.w3.org/TR/CSS21/sample.html
-,"#hatenaPreview address,#hatenaPreview blockquote,#hatenaPreview body,#hatenaPreview dd,#hatenaPreview div,#hatenaPreview dl,#hatenaPreview dt,#hatenaPreview fieldset,#hatenaPreview form,#hatenaPreview frame,#hatenaPreview frameset,#hatenaPreview h1,#hatenaPreview h2,#hatenaPreview h3,#hatenaPreview h4,#hatenaPreview h5,#hatenaPreview h6,#hatenaPreview noframes,#hatenaPreview ol,#hatenaPreview p,#hatenaPreview ul,#hatenaPreview center,#hatenaPreview dir,#hatenaPreview hr,#hatenaPreview menu,#hatenaPreview pre{display:block;unicode-bidi:embed;}"
-,"#hatenaPreview li{display:list-item;}"
-,"#hatenaPreview head{display:none;}"
-,"#hatenaPreview table{display:table;}"
-,"#hatenaPreview tr{display:table-row;}"
-,"#hatenaPreview thead{display:table-header-group;}"
-,"#hatenaPreview tbody{display:table-row-group;}"
-,"#hatenaPreview tfoot{display:table-footer-group;}"
-,"#hatenaPreview col{display:table-column;}"
-,"#hatenaPreview colgroup{display:table-column-group;}"
-,"#hatenaPreview td,#hatenaPreview th{display:table-cell;}"
-,"#hatenaPreview caption{display:table-caption;}"
-,"#hatenaPreview th{font-weight:bolder;text-align:center;}"
-,"#hatenaPreview caption{text-align:center;}"
-,"#hatenaPreview body{margin:8px;}"
-,"#hatenaPreview h1,#hatenaPreview h2,#hatenaPreview h3,#hatenaPreview h4{font-size:2em;margin:0.67em 0;}"
-,"#hatenaPreview h5{font-size:1.5em;margin:0.75em 0;}"
-,"#hatenaPreview h6{font-size:1.17em;margin:0.83em 0;}"
-,"#hatenaPreview p,#hatenaPreview blockquote,#hatenaPreview ul,#hatenaPreview fieldset,#hatenaPreview form,#hatenaPreview ol,#hatenaPreview dl,#hatenaPreview dir,#hatenaPreview menu{margin:1.12em 0;}"
-,"#hatenaPreview h1,#hatenaPreview h2,#hatenaPreview h3,#hatenaPreview h4,#hatenaPreview h5,#hatenaPreview h6,#hatenaPreview b,#hatenaPreview strong{font-weight:bolder;}"
-,"#hatenaPreview blockquote{margin-left:40px;margin-right:40px;}"
-,"#hatenaPreview i,#hatenaPreview cite,#hatenaPreview em,#hatenaPreview var,#hatenaPreview address{font-style:italic;}"
-,"#hatenaPreview pre,#hatenaPreview tt,#hatenaPreview code,#hatenaPreview kbd,#hatenaPreview samp{font-family:monospace;}"
-,"#hatenaPreview pre{white-space:pre;}"
-,"#hatenaPreview button,#hatenaPreview textarea,#hatenaPreview input,#hatenaPreview select{display:inline-block;}"
-,"#hatenaPreview big{font-size:1.17em;}"
-,"#hatenaPreview small,#hatenaPreview sub,#hatenaPreview sup{font-size:0.83em;}"
-,"#hatenaPreview sub{vertical-align:sub;}"
-,"#hatenaPreview sup{vertical-align:super;}"
-,"#hatenaPreview table{border-spacing:2px;}"
-,"#hatenaPreview thead,#hatenaPreview tbody,#hatenaPreview tfoot{vertical-align:middle;}"
-,"#hatenaPreview td,#hatenaPreview th,#hatenaPreview tr{vertical-align:inherit;}"
-,"#hatenaPreview s,#hatenaPreview strike,#hatenaPreview del{text-decoration:line-through;}"
-,"#hatenaPreview hr{border:1px inset;}"
-,"#hatenaPreview ol,#hatenaPreview ul,#hatenaPreview dir,#hatenaPreview menu,#hatenaPreview dd{margin-left:40px;}"
-,"#hatenaPreview ol{list-style-type:decimal;}"
-,"#hatenaPreview ol ul,#hatenaPreview ul ol,#hatenaPreview ul ul,#hatenaPreview ol ol{margin-top:0;margin-bottom:0;}"
-,"#hatenaPreview u,#hatenaPreview ins{text-decoration:underline;}"
-,"#hatenaPreview br:before{content:\"\A\";white-space:pre-line;}"
-,"#hatenaPreview center{text-align:center;}"
-,"#hatenaPreview :link,#hatenaPreview :visited{text-decoration:underline;}"
-,"#hatenaPreview :focus{outline:thin dotted invert;}"
+,"#emPreview address,#emPreview blockquote,#emPreview body,#emPreview dd,#emPreview div,#emPreview dl,#emPreview dt,#emPreview fieldset,#emPreview form,#emPreview frame,#emPreview frameset,#emPreview h1,#emPreview h2,#emPreview h3,#emPreview h4,#emPreview h5,#emPreview h6,#emPreview noframes,#emPreview ol,#emPreview p,#emPreview ul,#emPreview center,#emPreview dir,#emPreview hr,#emPreview menu,#emPreview pre{display:block;unicode-bidi:embed;}"
+,"#emPreview li{display:list-item;}"
+,"#emPreview head{display:none;}"
+,"#emPreview table{display:table;}"
+,"#emPreview tr{display:table-row;}"
+,"#emPreview thead{display:table-header-group;}"
+,"#emPreview tbody{display:table-row-group;}"
+,"#emPreview tfoot{display:table-footer-group;}"
+,"#emPreview col{display:table-column;}"
+,"#emPreview colgroup{display:table-column-group;}"
+,"#emPreview td,#emPreview th{display:table-cell;}"
+,"#emPreview caption{display:table-caption;}"
+,"#emPreview th{font-weight:bolder;text-align:center;}"
+,"#emPreview caption{text-align:center;}"
+,"#emPreview body{margin:8px;}"
+,"#emPreview h1,#emPreview h2,#emPreview h3,#emPreview h4{font-size:2em;margin:0.67em 0;}"
+,"#emPreview h5{font-size:1.5em;margin:0.75em 0;}"
+,"#emPreview h6{font-size:1.17em;margin:0.83em 0;}"
+,"#emPreview p,#emPreview blockquote,#emPreview ul,#emPreview fieldset,#emPreview form,#emPreview ol,#emPreview dl,#emPreview dir,#emPreview menu{margin:1.12em 0;}"
+,"#emPreview h1,#emPreview h2,#emPreview h3,#emPreview h4,#emPreview h5,#emPreview h6,#emPreview b,#emPreview strong{font-weight:bolder;}"
+,"#emPreview blockquote{margin-left:40px;margin-right:40px;}"
+,"#emPreview i,#emPreview cite,#emPreview em,#emPreview var,#emPreview address{font-style:italic;}"
+,"#emPreview pre,#emPreview tt,#emPreview code,#emPreview kbd,#emPreview samp{font-family:monospace;}"
+,"#emPreview pre{white-space:pre;}"
+,"#emPreview button,#emPreview textarea,#emPreview input,#emPreview select{display:inline-block;}"
+,"#emPreview big{font-size:1.17em;}"
+,"#emPreview small,#emPreview sub,#emPreview sup{font-size:0.83em;}"
+,"#emPreview sub{vertical-align:sub;}"
+,"#emPreview sup{vertical-align:super;}"
+,"#emPreview table{border-spacing:2px;}"
+,"#emPreview thead,#emPreview tbody,#emPreview tfoot{vertical-align:middle;}"
+,"#emPreview td,#emPreview th,#emPreview tr{vertical-align:inherit;}"
+,"#emPreview s,#emPreview strike,#emPreview del{text-decoration:line-through;}"
+,"#emPreview hr{border:1px inset;}"
+,"#emPreview ol,#emPreview ul,#emPreview dir,#emPreview menu,#emPreview dd{margin-left:40px;}"
+,"#emPreview ol{list-style-type:decimal;}"
+,"#emPreview ol ul,#emPreview ul ol,#emPreview ul ul,#emPreview ol ol{margin-top:0;margin-bottom:0;}"
+,"#emPreview u,#emPreview ins{text-decoration:underline;}"
+,"#emPreview br:before{content:\"\A\";white-space:pre-line;}"
+,"#emPreview center{text-align:center;}"
+,"#emPreview :link,#emPreview :visited{text-decoration:underline;}"
+,"#emPreview :focus{outline:thin dotted invert;}"
 // original style
-,"#hatenaPreview figure{display:block;margin-top:1em;margin-bottom:1em;margin-left:40px;margin-right:40px;}"
-,"#hatenaPreview div.previewOnly{margin:10px;font-size:13px;font-weight:bold;color:#888;}"
-,"#hatenaPreview h4,#hatenaPreview h5,#hatenaPreview h6{clear:both;}"
-,'#hatenaPreview figure.bhmLeft{clear:left;float:left;}'
-,'#hatenaPreview figure.bhmRight{clear:right;float:right;}'
-,'#hatenaPreview figure.bhmCenter{clear:both;margin-left:auto;margin-right:auto;}'
-,'#hatenaPreview figure>div.bhmImage{text-align:center;}'
+,"#emPreview figure{display:block;margin-top:1em;margin-bottom:1em;margin-left:40px;margin-right:40px;}"
+,"#emPreview div.previewOnly{margin:10px;font-size:13px;font-weight:bold;color:#888;}"
+,"#emPreview h4,#emPreview h5,#emPreview h6{clear:both;}"
+,'#emPreview figure.emebLeft{clear:left;float:left;}'
+,'#emPreview figure.emebRight{clear:right;float:right;}'
+,'#emPreview figure.emebCenter{clear:both;margin-left:auto;margin-right:auto;}'
+,'#emPreview figure>div.emebImage{text-align:center;}'
+,"#emPreview ol ul,#emPreview ul,#emPreview ul ul{list-style-type: disc;}"
+,"#emPreview ol,#emPreview ul ol,#emPreview ol ol{list-style-type: decimal;}"
             ].join('\n');
             document.head.appendChild(style);
         };
@@ -534,7 +536,7 @@ var bloggerHatenaMarkup = function () {
                 hlc.id = "hatenaLinkContainer";
                 hlc.style.display = "none";
                 hlc.addEventListener("click", function() {
-                    setHatenaEditorLoading(false);
+                    setemEditorLoading(false);
                     var url = hlc.getAttribute("data-url");
                     var title = hlc.getAttribute("data-title");
                     showLink(url, String._escapeHTML(title));
@@ -559,7 +561,7 @@ var bloggerHatenaMarkup = function () {
 
             var showLink = function(link, innerText) {
                 var text = "[" + link + ":" + String._escapeInsideLink(innerText) + "]";
-                insertTextUnderCursor(hatenaEditor, text);
+                insertTextUnderCursor(emEditor, text);
                 
                 seePreview();
             };
@@ -572,7 +574,7 @@ var bloggerHatenaMarkup = function () {
                 jsonp.setAttribute("src", reqUrl);
                 document.body.appendChild(jsonp);
                 // bloggerHatenaMarkup_linkCallback will be called later
-                setHatenaEditorLoading(true);
+                setemEditorLoading(true);
             };
 
             var getLink = function() {
@@ -585,7 +587,7 @@ var bloggerHatenaMarkup = function () {
                 c.innerHTML = inserted;
                 var href = c.firstElementChild.href;
 
-                var innerText = getSelection(hatenaEditor);
+                var innerText = getSelection(emEditor);
 
                 if (innerText === "") {
                     generateLinkAuto(href);
@@ -618,7 +620,7 @@ var bloggerHatenaMarkup = function () {
                     var el = null;
                     if (el = document.getElementById(tag.id)) {
                         el.addEventListener("click", function() {
-                            insertTag(hatenaEditor, tag.sTag, tag.eTag);
+                            insertTag(emEditor, tag.sTag, tag.eTag);
                             seePreview();
                         });
                         return true;
@@ -630,7 +632,7 @@ var bloggerHatenaMarkup = function () {
 
         addPreviewStyles();
         addHatenaElements();
-        hatenaEditorToggler.init();
+        emEditorToggler.init();
         setLinkAction();
         setDecoratorTagsAction();
         resizer.init();
@@ -654,41 +656,41 @@ var bloggerHatenaMarkup = function () {
     });
     
     var extractHatenaOrNull = function(str) {
-        var m = str.match(/\n<!--HatenaKihou\r?\n([\s\S]*)\nHatenaKihou-->/);
+        var m = str.match(/\n<!--ExtremeMarkup\r?\n([\s\S]*)\nExtremeMarkup-->/);
         if (m === null) {
             return null;
         }
         return m[1].replace(/\{\{(\d+) hyphens\}\}/g, function($0,$1) { return String.times('-', +$1); });
     };
     
-    var textareaToHatenaEditor = function() {
+    var textareaToemEditor = function() {
         var h = extractHatenaOrNull(textarea.value);
         if (h === null) {
-            hatenaEditor.value = "";
-            hatenaPreview.innerHTML = "";
-            hatenaEditorToggler.disable();
+            emEditor.value = "";
+            emPreview.innerHTML = "";
+            emEditorToggler.disable();
         } else {
-            hatenaEditor.value = h;
+            emEditor.value = h;
             seePreview();
-            hatenaEditorToggler.enable();
+            emEditorToggler.enable();
         }
     };
     
     initState();
 
     function seePreview() {
-        hatenaPreview.innerHTML = hatena.parse(hatenaEditor.value);
+        emPreview.innerHTML = hatena.parse(emEditor.value);
         setTextArea();
     }
 
     var styles = (function() {
         var styles = [
 ,'<style type="text/css" scoped="scoped">'
-,'h4.bhm,h5.bhm,h6.bhm{clear:both;}'
-,'figure.bhmLeft{clear:left;float:left;}'
-,'figure.bhmRight{clear:right;float:right;}'
-,'figure.bhmCenter{clear:both;margin-left:auto;margin-right:auto;}'
-,'figure>div.bhmImage{text-align:center;}'
+,'h4.emeb,h5.emeb,h6.emeb{clear:both;}'
+,'figure.emebLeft{clear:left;float:left;}'
+,'figure.emebRight{clear:right;float:right;}'
+,'figure.emebCenter{clear:both;margin-left:auto;margin-right:auto;}'
+,'figure>div.emebImage{text-align:center;}'
 ,'</style>'
         ].join("\n") + "\n";
 
@@ -696,10 +698,10 @@ var bloggerHatenaMarkup = function () {
     })();
 
     function setTextArea() {
-        var html = hatenaPreview.innerHTML.replace(/<!--hatenaPreview-->.*?<!--\/hatenaPreview-->/mg, "");
-        textarea.value = styles + html + "\n<!--HatenaKihou\n" + hatenaEditor.value.replace(
+        var html = emPreview.innerHTML.replace(/<!--emPreview-->.*?<!--\/emPreview-->/mg, "");
+        textarea.value = styles + html + "\n<!--ExtremeMarkup\n" + emEditor.value.replace(
             /-{2,}/g, function($0) {return '{{'+$0.length+' hyphens}}'}
-            ) + "\nHatenaKihou-->";
+            ) + "\nExtremeMarkup-->";
         resetTextareaForCatchingInsertion(textarea);
     }
 };

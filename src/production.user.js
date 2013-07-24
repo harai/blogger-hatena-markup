@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name           Blogger Hatena Markup
+// @name           Extreme Markup Editor for Blogger™
 // @namespace      https://github.com/harai/
-// @description    Hatena Markup for Blogger
+// @description    Write blog posts with Extreme Markup, which resembles Hatena Markup and is much easier to use than Markdown.
 // @include        http://www.blogger.com/blogger.g*
 // @version 0.0
 // ==/UserScript==

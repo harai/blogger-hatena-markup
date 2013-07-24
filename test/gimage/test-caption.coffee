@@ -27,8 +27,8 @@ foo
             assert.equal parse(i), """
 <p>hoge</p>
 
-<figure class="bhmCenter" style="width: 320px;">
-    <div class="bhmImage"><a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" alt="" /></a></div>
+<figure class="emebCenter" style="width: 320px;">
+    <div class="emebImage"><a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" alt="" /></a></div>
     <figcaption>
         <p>Figure 1. foo bar</p>
     </figcaption>
@@ -54,8 +54,8 @@ foo
             assert.equal parse(i), """
 <p>hoge</p>
 
-<figure class="bhmCenter" style="width: 320px;">
-    <div class="bhmImage"><a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" alt="" /></a></div>
+<figure class="emebCenter" style="width: 320px;">
+    <div class="emebImage"><a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" alt="" /></a></div>
     <figcaption>
         <p>Figure 1. foo bar</p>
         <p>second paragraph</p>
@@ -81,10 +81,10 @@ foo
             assert.equal parse(i), """
 <p>hoge</p>
 
-<figure class="bhmCenter" style="width: 320px;">
-    <div class="bhmImage"><a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" alt="" /></a></div>
+<figure class="emebCenter" style="width: 320px;">
+    <div class="emebImage"><a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" alt="" /></a></div>
 </figure>
-<h4 class="bhm">Figure 1. foo bar</h4>
+<h4 class="emeb">Figure 1. foo bar</h4>
 
 <p>foo</p>
 
@@ -107,8 +107,8 @@ foo
             assert.equal parse(i), """
 <p>hoge</p>
 
-<figure class="bhmCenter" style="width: 320px;">
-    <div class="bhmImage"><a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" alt="" /></a></div>
+<figure class="emebCenter" style="width: 320px;">
+    <div class="emebImage"><a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" alt="" /></a></div>
 </figure>
 <blockquote>
     <p>Figure 1. foo bar</p>

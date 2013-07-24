@@ -28,14 +28,14 @@ describe 'Hatena', ->
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<h4 class="bhm">はてな記法JavaScript</h4>
+<h4 class="emeb">はてな記法JavaScript</h4>
 <p>はてな記法ワープロは JavaScript ならではの利点を生かしたダイナミックなワープロです。</p>
 
 <p>試しに色々入力してみてください。即座に出力画面が反映されます<span class="footnote"><a href="#f1" title="Windows 版 IE6 および Firefox 1.0 でのみ確認しています" name="fn1">*1</a></span>。</p>
 
 <p>はてな記法の変換は <a href="http://search.cpan.org/dist/Text-Hatena/">Text::Hatena</a> を JavaScript に移植した "text-hatena.js" を活用しています。</p>
 
-<h4 class="bhm">変更履歴</h4>
+<h4 class="emeb">変更履歴</h4>
 <table>
     <tr>
         <th>2005/12/1</th>
@@ -67,7 +67,7 @@ describe 'Hatena', ->
 """
             # console.log(parse(i))
             assert.equal parse(i), """
-<h4 class="bhm">Metasyntactic Variables</h4>
+<h4 class="emeb">Metasyntactic Variables</h4>
 <ol>
     <li>Japanese
         <ul>
@@ -208,7 +208,7 @@ foo bar
             assert.equal parse(i), """
 <p>hoge</p>
 <!-- more -->
-<!--hatenaPreview--><div class="previewOnly">&lt;!-- more --&gt;</div><!--/hatenaPreview-->
+<!--emPreview--><div class="previewOnly">&lt;!-- more --&gt;</div><!--/emPreview-->
 <p>foo bar</p>
 """
 
@@ -248,6 +248,6 @@ foo bar
             assert.equal parse(i), """
 <p>hoge</p>
 <!-- more -->
-<!--hatenaPreview--><div class="previewOnly">&lt;!-- more --&gt;</div><!--/hatenaPreview-->
+<!--emPreview--><div class="previewOnly">&lt;!-- more --&gt;</div><!--/emPreview-->
 <p>foo bar</p>
 """

@@ -354,7 +354,7 @@ Hatena_H4Node.prototype = Object.extend(new Hatena_Node(), {
     parse: function(match) {
         var c = this.self.context;
         c.next();
-        c.putLine('<h4 class="bhm">' + Hatena_InLine.parsePart(match[1], c) + "</h4>");
+        c.putLine('<h4 class="emeb">' + Hatena_InLine.parsePart(match[1], c) + "</h4>");
     }
 });
 
@@ -366,7 +366,7 @@ Hatena_H5Node.prototype = Object.extend(new Hatena_Node(), {
     parse: function(match) {
         var c = this.self.context;
         c.next();
-        c.putLine('<h5 class="bhm">' + Hatena_InLine.parsePart(match[1], c) + "</h5>");
+        c.putLine('<h5 class="emeb">' + Hatena_InLine.parsePart(match[1], c) + "</h5>");
     }
 });
 
@@ -378,7 +378,7 @@ Hatena_H6Node.prototype = Object.extend(new Hatena_Node(), {
     parse: function(match) {
         var c = this.self.context;
         c.next();
-        c.putLine('<h6 class="bhm">' + Hatena_InLine.parsePart(match[1], c) + "</h6>");
+        c.putLine('<h6 class="emeb">' + Hatena_InLine.parsePart(match[1], c) + "</h6>");
     }
 });
 
@@ -724,7 +724,7 @@ Hatena_GimageNode.getImgTag = function(args) {
         return args.matchStr;
     }
     var beginA = args.isInline ? "" :
-        '<div class="bhmImage"><a href="' + String._escapeHTML(args.originalUrl) + '">';
+        '<div class="emebImage"><a href="' + String._escapeHTML(args.originalUrl) + '">';
     var endA = args.isInline ? "" : "</a></div>";
 
     return beginA + '<img src="' + String._escapeHTML(args.url) + '" alt="' +
@@ -755,11 +755,11 @@ Hatena_GimageNode.prototype = Object.extend(new Hatena_SectionNode(), {
         var getStyle = function() {
             var style = "";
             if (imageProp.pos === "center") {
-                style += ' class="bhmCenter"';
+                style += ' class="emebCenter"';
             } else if (imageProp.pos === "left") {
-                style += ' class="bhmLeft"';
+                style += ' class="emebLeft"';
             } else if (imageProp.pos === "right") {
-                style += ' class="bhmRight"';
+                style += ' class="emebRight"';
             }
             if (imageProp.frameSize !== null) {
                 style += ' style="width: ' + imageProp.frameSize + 'px;"';
@@ -837,6 +837,6 @@ Hatena_MoreNode.prototype = Object.extend(new Hatena_SectionNode(), {
         var c = this.self.context;
         c.next();
         c.putLineWithoutIndent("<!-- more -->");
-        c.putLineWithoutIndent('<!--hatenaPreview--><div class="previewOnly">&lt;!-- more --&gt;</div><!--/hatenaPreview-->');
+        c.putLineWithoutIndent('<!--emPreview--><div class="previewOnly">&lt;!-- more --&gt;</div><!--/emPreview-->');
     }
 });

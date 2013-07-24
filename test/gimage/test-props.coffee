@@ -26,8 +26,8 @@ foo
             assert.equal parse(i), """
 <p>hoge</p>
 
-<figure class="bhmCenter" style="width: 320px;">
-    <div class="bhmImage"><a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" alt="" /></a></div>
+<figure class="emebCenter" style="width: 320px;">
+    <div class="emebImage"><a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" alt="" /></a></div>
 </figure>
 
 <p>foo</p>
@@ -49,8 +49,8 @@ foo
             assert.equal parse(i), """
 <p>hoge</p>
 
-<figure class="bhmLeft" style="width: 320px;">
-    <div class="bhmImage"><a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" alt="" /></a></div>
+<figure class="emebLeft" style="width: 320px;">
+    <div class="emebImage"><a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" alt="" /></a></div>
     <figcaption>
         <p>Figure 1. foo bar</p>
     </figcaption>
@@ -75,8 +75,8 @@ foo
             assert.equal parse(i), """
 <p>hoge</p>
 
-<figure class="bhmRight" style="width: 320px;">
-    <div class="bhmImage"><a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" alt="" /></a></div>
+<figure class="emebRight" style="width: 320px;">
+    <div class="emebImage"><a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" alt="" /></a></div>
     <figcaption>
         <p>Figure 1. foo bar</p>
     </figcaption>
@@ -100,8 +100,8 @@ foo
             assert.equal parse(i), """
 <p>hoge</p>
 
-<figure class="bhmCenter" style="width: 320px;">
-    <div class="bhmImage"><a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" alt="My Alt" /></a></div>
+<figure class="emebCenter" style="width: 320px;">
+    <div class="emebImage"><a href="http://exapmle.com/test.jpg"><img src="http://exapmle.com/test.jpg" alt="My Alt" /></a></div>
 </figure>
 
 <p>foo</p>
@@ -122,8 +122,8 @@ foo
             assert.equal parse(i), """
 <p>hoge</p>
 
-<figure class="bhmCenter" style="width: 360px;">
-    <div class="bhmImage"><a href="http://exapmle.com/s1200/test.jpg"><img src="http://exapmle.com/s320/test.jpg" alt="My Alt" /></a></div>
+<figure class="emebCenter" style="width: 360px;">
+    <div class="emebImage"><a href="http://exapmle.com/s1200/test.jpg"><img src="http://exapmle.com/s320/test.jpg" alt="My Alt" /></a></div>
 </figure>
 
 <p>foo</p>
@@ -144,8 +144,8 @@ foo
             assert.equal parse(i), """
 <p>hoge</p>
 
-<figure class="bhmCenter" style="width: 360px;">
-    <div class="bhmImage"><a href="http://exapmle.com/s1200/test.jpg"><img src="http://exapmle.com/s320/test.jpg" alt="My Alt" /></a></div>
+<figure class="emebCenter" style="width: 360px;">
+    <div class="emebImage"><a href="http://exapmle.com/s1200/test.jpg"><img src="http://exapmle.com/s320/test.jpg" alt="My Alt" /></a></div>
 </figure>
 
 <p>foo</p>
@@ -167,8 +167,8 @@ foo
             assert.equal parse(i), """
 <p>hoge</p>
 
-<figure class="bhmCenter" style="width: 360px;">
-    <div class="bhmImage"><a href="http://exapmle.com/s1200/test.jpg"><img src="http://exapmle.com/s320/test.jpg" alt=" left" /></a></div>
+<figure class="emebCenter" style="width: 360px;">
+    <div class="emebImage"><a href="http://exapmle.com/s1200/test.jpg"><img src="http://exapmle.com/s320/test.jpg" alt=" left" /></a></div>
     <figcaption>
         <p>Figure 1. foo bar</p>
     </figcaption>
@@ -193,8 +193,8 @@ foo
             assert.equal parse(i), """
 <p>hoge</p>
 
-<figure class="bhmCenter" style="width: 320px;">
-    <div class="bhmImage"><a href="http://exapmle.com/s1200/test.jpg"><img src="http://exapmle.com/s320/test.jpg" alt=" 360" /></a></div>
+<figure class="emebCenter" style="width: 320px;">
+    <div class="emebImage"><a href="http://exapmle.com/s1200/test.jpg"><img src="http://exapmle.com/s320/test.jpg" alt=" 360" /></a></div>
     <figcaption>
         <p>Figure 1. foo bar</p>
     </figcaption>
@@ -219,8 +219,8 @@ foo
             assert.equal parse(i), """
 <p>hoge</p>
 
-<figure class="bhmCenter" style="width: 320px;">
-    <div class="bhmImage"><a href="http://exapmle.com/s1200/test.jpg"><img src="http://exapmle.com/s320/test.jpg" alt=":" /></a></div>
+<figure class="emebCenter" style="width: 320px;">
+    <div class="emebImage"><a href="http://exapmle.com/s1200/test.jpg"><img src="http://exapmle.com/s320/test.jpg" alt=":" /></a></div>
     <figcaption>
         <p>Figure 1. foo bar</p>
     </figcaption>

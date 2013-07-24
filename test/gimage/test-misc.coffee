@@ -26,8 +26,8 @@ foo
             assert.equal parse(i), """
 <p>hoge</p>
 
-<figure class="bhmCenter" style="width: 320px;">
-    <div class="bhmImage"><a href="http://exapmle.com/s2400/test.jpg"><img src="http://exapmle.com/s320/test.jpg" alt="" /></a></div>
+<figure class="emebCenter" style="width: 320px;">
+    <div class="emebImage"><a href="http://exapmle.com/s2400/test.jpg"><img src="http://exapmle.com/s320/test.jpg" alt="" /></a></div>
 </figure>
 
 <p>foo</p>

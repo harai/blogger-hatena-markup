@@ -3,4 +3,5 @@
 BASEDIR=$(dirname $0)
 mkdir -p ./temp ./output
 cp src/manifest.json ./output/
-java -jar ${BASEDIR}/compiler.jar --js src/hatena-markup.js --js src/blogger.js --js_output_file temp/js.temp --language_in=ECMASCRIPT5 && cat src/production.user.js temp/js.temp > output/blogger-hatena-markup.user.js
+cp resource/icon_128.png ./output/
+java -jar ${BASEDIR}/compiler.jar --js src/hatena-markup.js --js src/blogger.js --js_output_file temp/js.temp --language_in=ECMASCRIPT5 && cat src/production.user.js temp/js.temp > output/extreme-markup-blogger.user.js
