@@ -261,9 +261,29 @@ var bloggerHatenaMarkup = function () {
         seePreview();
     };
 
-    var setemEditorLoading = function(isLoading) {
-        emEditorLoading.style.display = isLoading ? "block" : "none";
-    };
+    var loadingStateManager = (function() {
+        var timer = null;
+        return {
+            startLoading: function() {
+                if (timer) {
+                    clearTimeout(timer);
+                }
+                timer = setTimeout(function() {
+                    emEditorLoading.style.display = "none";
+                }, 10000);
+                emEditorLoading.style.display = "block";
+            },
+            finishLoading: function() {
+                if (timer) {
+                    clearTimeout(timer);
+                }
+                emEditorLoading.style.display = "none";
+            },
+            isLoading: function() {
+                return emEditorLoading.style.display === "block";
+            }
+        };
+    })();
 
     var emEditorToggler = (function() {
         var enabled = false;
@@ -400,8 +420,11 @@ var bloggerHatenaMarkup = function () {
                         "display: none;",
                         "font-weight: bold;",
                         "font-size: 20px;",
+                        "background-color: cyan;",
+                        "padding: 10px;",
+                        "padding: 10px;",
                     ].join(''));
-                    emEditorLoading.appendChild(document.createTextNode("Loading..."));
+                    emEditorLoading.appendChild(document.createTextNode("Fetching the title..."));
 
                     var emEditorDiv = document.createElement("div");
                     emEditorDiv.setAttribute('style', [
@@ -540,7 +563,11 @@ var bloggerHatenaMarkup = function () {
                 hlc.id = "hatenaLinkContainer";
                 hlc.style.display = "none";
                 hlc.addEventListener("click", function() {
-                    setemEditorLoading(false);
+                     // discard the delayed response to avoid unintended insertion
+                    if (!loadingStateManager.isLoading()) {
+                        return;
+                    }
+                    loadingStateManager.finishLoading();
                     var url = hlc.getAttribute("data-url");
                     var title = hlc.getAttribute("data-title");
                     showLink(url, String._escapeHTML(title));
@@ -578,7 +605,7 @@ var bloggerHatenaMarkup = function () {
                 jsonp.setAttribute("src", reqUrl);
                 document.body.appendChild(jsonp);
                 // bloggerHatenaMarkup_linkCallback will be called later
-                setemEditorLoading(true);
+                loadingStateManager.startLoading();
             };
 
             var getLink = function() {
@@ -595,6 +622,7 @@ var bloggerHatenaMarkup = function () {
 
                 if (innerText === "") {
                     generateLinkAuto(href);
+                    seePreview(); // to remove the input text on textarea
                     return;
                 }
 
