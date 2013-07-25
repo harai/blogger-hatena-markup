@@ -526,6 +526,10 @@ var bloggerHatenaMarkup = function () {
 ,'#emPreview figure>div.emebImage{text-align:center;}'
 ,"#emPreview ol ul,#emPreview ul,#emPreview ul ul{list-style-type: disc;}"
 ,"#emPreview ol,#emPreview ul ol,#emPreview ol ol{list-style-type: decimal;}"
+,"#emPreview dt{font-weight:bold;}"
+,"#emPreview table,#emPreview th,#emPreview td{border:1px solid black;border-collapse:collapse;}"
+,"#emPreview th,#emPreview td{padding:5px;}"
+,"#emPreview pre,#emPreview table{margin:15px;}"
             ].join('\n');
             document.head.appendChild(style);
         };
