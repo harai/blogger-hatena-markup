@@ -251,3 +251,16 @@ foo bar
 <!--emPreview--><div class="previewOnly">&lt;!-- more --&gt;</div><!--/emPreview-->
 <p>foo bar</p>
 """
+
+        it 'should output without indent inside Tag notation', ->
+            i = """
+><pre>
+ahya
+</pre><
+"""
+            # console.log(parse(i))
+            assert.equal parse(i), """
+<pre>
+ahya
+</pre>
+"""

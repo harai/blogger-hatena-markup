@@ -117,6 +117,10 @@ Hatena_Context.prototype = {
     },
 
     putLine: function(line) {
+        if (this.self.noparagraph) {
+            this.self.resultLines.push(line);
+            return;
+        }
         var iStr = String.times(this.self.indentStr, this.self.indent);
         this.self.resultLines.push(iStr + line);
     },

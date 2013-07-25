@@ -512,7 +512,7 @@ paragraph line
             # console.log(parse(i))
             assert.equal parse(i), """
 <blockquote>
-    <p>Hello I am writing HTML tags by myself</p>
+<p>Hello I am writing HTML tags by myself</p>
 </blockquote>
 """
         it 'cdata3', ->
