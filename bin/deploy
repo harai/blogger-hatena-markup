@@ -9,4 +9,8 @@ fi
 bin/create_production
 ruby -e 'while s = $stdin.gets; s.sub!(%q|"version": "0.0"|, %Q|"version": "#{ARGV[0]}"|); puts s; end' -- $1 < output/manifest.json > temp/manifest.json
 ruby -e 'while s = $stdin.gets; s.sub!(%q|@version 0.0|, %Q|@version #{ARGV[0]}|); puts s; end' -- $1 < output/extreme-markup-blogger.user.js > temp/extreme-markup-blogger.user.js
-zip -FSj output/emeb-chrome.zip temp/extreme-markup-blogger.user.js temp/manifest.json output/icon_128.png
+rm -fr temp/_locales
+cp output/icon_128.png temp/
+cp -R output/_locales temp/
+cd temp
+zip -FSr ../output/emeb-chrome.zip extreme-markup-blogger.user.js manifest.json icon_128.png _locales

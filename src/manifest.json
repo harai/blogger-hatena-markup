@@ -10,7 +10,8 @@
       "run_at": "document_end"
    } ],
    "converted_from_user_script": true,
-   "description": "Write blog posts with Extreme Markup, which resembles Hatena Markup and is much easier to use than Markdown.",
+   "description": "__MSG_appDesc__",
+   "default_locale": "en",
    "name": "Extreme Markup Editor for Blogger™",
    "version": "0.0"
 }
