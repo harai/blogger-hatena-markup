@@ -78,7 +78,8 @@ var bloggerHatenaMarkup = function () {
     };
 
     var isModalDialogShown = function() {
-        var el = document.getElementById(":w");
+        // :x is used somehow when the dialog reappears after cancelling
+        var el = document.getElementById(":w") || document.getElementById(":x");
         return !!el && isShown(el);
     };
 
