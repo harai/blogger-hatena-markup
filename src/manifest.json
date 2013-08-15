@@ -4,7 +4,7 @@
    "content_scripts": [ {
       "exclude_globs": [  ],
       "exclude_matches": [  ],
-      "include_globs": [ "http://www.blogger.com/blogger.g*" ],
+      "include_globs": [ "http://www.blogger.com/blogger.g*", "https://www.blogger.com/blogger.g*" ],
       "js": [ "extreme-markup-blogger.user.js" ],
       "matches": [ "http://*/*", "https://*/*" ],
       "run_at": "document_end"

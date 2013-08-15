@@ -3,6 +3,7 @@
 // @namespace      https://github.com/harai/
 // @description    Write blog posts with Extreme Markup, which resembles Hatena Markup and is much easier to use than Markdown.
 // @include        http://www.blogger.com/blogger.g*
+// @include        https://www.blogger.com/blogger.g*
 // @version 0.0
 // ==/UserScript==
 //
