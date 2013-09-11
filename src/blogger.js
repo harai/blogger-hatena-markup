@@ -42,7 +42,7 @@ var bloggerHatenaMarkup = function () {
         }
         var text = textarea.value.substring(0, end);
         return text;
-    }
+    };
 
     var generateGuid = function() {
         var s4 = function() {
@@ -92,7 +92,7 @@ var bloggerHatenaMarkup = function () {
     var emLeftContainer = null;
     
     var stateTemplate = function(args) {
-        var name = args.name ? args.name : "anonymous state"
+        var name = args.name ? args.name : "anonymous state";
         return function() {
             // console.debug(">>> on " + name);
             if (args.initialize) {
@@ -301,7 +301,7 @@ var bloggerHatenaMarkup = function () {
             } else {
                 emEditorToTextareaSynchronizer.stop();
             }
-        }
+        };
 
         return {
             init: function() {
@@ -739,7 +739,7 @@ var bloggerHatenaMarkup = function () {
     function setTextArea() {
         var html = emPreview.innerHTML.replace(/<!--emPreview-->.*?<!--\/emPreview-->/mg, "");
         textarea.value = styles + html + "\n<!--ExtremeMarkup\n" + emEditor.value.replace(
-            /-{2,}/g, function($0) {return '{{'+$0.length+' hyphens}}'}
+            /-{2,}/g, function($0) { return '{{'+$0.length+' hyphens}}'; }
             ) + "\nExtremeMarkup-->";
         resetTextareaForCatchingInsertion(textarea);
     }

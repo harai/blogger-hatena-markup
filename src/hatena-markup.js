@@ -50,7 +50,7 @@ String._unescapeHTML = function(s){
 Hatena = function(args){
     this.self = {
         doc: args.doc
-    }
+    };
 };
 Hatena.prototype = {
     parse: function(text) {
