@@ -591,8 +591,9 @@ var bloggerHatenaMarkup = function () {
                 return hlc;
             })();
 
-            var showLink = function(link, innerText) {
-                var text = "[" + link + ":" + String._escapeInsideLink(innerText) + "]";
+            var showLink = function(url, innerText) {
+                var text = "[" + String._escapeUrlInsideBracket(url) + ":" +
+                    String._escapeInsideLink(innerText) + "]";
                 insertTextUnderCursor(emEditor, text);
                 
                 seePreview();

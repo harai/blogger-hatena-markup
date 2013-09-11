@@ -46,6 +46,21 @@ String._unescapeHTML = function(s){
     return s;
 };
 
+String._escapeUrlInsideBracket = function(s) {
+    s = s.replace(/\[/g, "%5B");
+    s = s.replace(/\]/g, "%5D");
+    var isFirstTime = true;
+    s = s.replace(/\:/g, function () {
+        if (isFirstTime) {
+            isFirstTime = false;
+            return ":"; // http:<-
+        }
+        return "%3A";
+    });
+    
+    return s;
+};
+
 
 Hatena = function(args){
     this.self = {
