@@ -397,6 +397,60 @@ var bloggerHatenaMarkup = function () {
         };
     })();
 
+    var mathJax = (function() {
+        var bridge = null;
+        
+        var init = function() {
+            var addConfig = function() {
+                var script = document.createElement("script");
+                script.type = "text/x-mathjax-config";
+                script.textContent = "MathJax.Hub.Config({ skipStartupTypeset: true });";
+                document.getElementsByTagName("head")[0].appendChild(script);
+            };
+            
+            var addInclude = function() {
+                var script = document.createElement("script");
+                script.type = "text/javascript";
+                script.src = "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML-full";
+                document.getElementsByTagName("head")[0].appendChild(script);
+            };
+
+            var createBridge = function() {
+                var el = document.createElement("div");
+                el.id = "mathjaxBrigde";
+                el.style.display = "none";
+                document.body.appendChild(el);
+                return el;
+            };
+
+            var addProcessor = function() {
+                var script = document.createElement("script");
+                script.type = "text/javascript";
+                script.textContent = [
+"document.getElementById('mathjaxBrigde').addEventListener('click', function() {",
+"    MathJax.Hub.Process(document.getElementById('emPreview'));",
+"});"
+].join("\n");
+                document.body.appendChild(script);
+            };
+
+            addConfig();
+            addInclude();
+            bridge = createBridge();
+            addProcessor();
+        };
+
+        var process = function() {
+            var event = new MouseEvent("click", { "view": window });
+            bridge.dispatchEvent(event);
+        };
+
+        return {
+            init: init,
+            process: process
+        };
+    })();
+
     var initHatena = function() {  
         var BOX_SIZING = "-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;";
         var addHatenaElements = function() {
@@ -670,26 +724,7 @@ var bloggerHatenaMarkup = function () {
             });
         };
 
-        var addMathJax = function() {
-            var addConfig = function() {
-                var script = document.createElement("script");
-                script.type = "text/x-mathjax-config";
-                script.textContent = "MathJax.Hub.Config({ skipStartupTypeset: true });";
-                document.getElementsByTagName("head")[0].appendChild(script);
-            };
-            
-            var addInclude = function() {
-                var script = document.createElement("script");
-                script.type = "text/javascript";
-                script.src = "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML-full";
-                document.getElementsByTagName("head")[0].appendChild(script);
-            };
-            
-            addConfig();
-            addInclude();
-        };
-
-        addMathJax();
+        mathJax.init();
         addPreviewStyles();
         addHatenaElements();
         emEditorToggler.init();
@@ -742,7 +777,7 @@ var bloggerHatenaMarkup = function () {
         var htmlPost = hatena.parse(emEditor.value);
         emPreview.innerHTML = htmlPost;
         setTextArea(htmlPost);
-        MathJax.Hub.Process(emPreview);
+        mathJax.process();
     }
 
     var styles = (function() {
