@@ -2,4 +2,5 @@
 
 while inotifywait -r -e modify ./src/ ./test/; do
   mocha --compilers coffee:coffee-script --recursive
+  date
 done
