@@ -670,6 +670,26 @@ var bloggerHatenaMarkup = function () {
             });
         };
 
+        var addMathJax = function() {
+            var addConfig = function() {
+                var script = document.createElement("script");
+                script.type = "text/x-mathjax-config";
+                script.textContent = "MathJax.Hub.Config({ skipStartupTypeset: true });";
+                document.getElementsByTagName("head")[0].appendChild(script);
+            };
+            
+            var addInclude = function() {
+                var script = document.createElement("script");
+                script.type = "text/javascript";
+                script.src = "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML-full";
+                document.getElementsByTagName("head")[0].appendChild(script);
+            };
+            
+            addConfig();
+            addInclude();
+        };
+
+        addMathJax();
         addPreviewStyles();
         addHatenaElements();
         emEditorToggler.init();
@@ -719,8 +739,10 @@ var bloggerHatenaMarkup = function () {
     initState();
 
     function seePreview() {
-        emPreview.innerHTML = hatena.parse(emEditor.value);
-        setTextArea();
+        var htmlPost = hatena.parse(emEditor.value);
+        emPreview.innerHTML = htmlPost;
+        setTextArea(htmlPost);
+        MathJax.Hub.Process(emPreview);
     }
 
     var styles = (function() {
@@ -737,8 +759,8 @@ var bloggerHatenaMarkup = function () {
         return styles;
     })();
 
-    function setTextArea() {
-        var html = emPreview.innerHTML.replace(/<!--emPreview-->.*?<!--\/emPreview-->/mg, "");
+    function setTextArea(htmlPost) {
+        var html = htmlPost.replace(/<!--emPreview-->.*?<!--\/emPreview-->/mg, "");
         textarea.value = styles + html + "\n<!--ExtremeMarkup\n" + emEditor.value.replace(
             /-{2,}/g, function($0) { return '{{'+$0.length+' hyphens}}'; }
             ) + "\nExtremeMarkup-->";

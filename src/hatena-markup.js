@@ -240,6 +240,8 @@ Hatena_LinkNode = {
 
 Hatena_InLine = {
     parseFootnotePart: function(text, context) {
+        // there might be a better order
+        text = Hatena_TexNode.replaceTexInLine(text);
         text = Hatena_GimageNode.replaceGimagesInLine(text, context);
         return Hatena_LinkNode.replaceLinksInLine(text);
     },
@@ -541,7 +543,7 @@ Hatena_TableNode.prototype = Object.extend(new Hatena_Node(), {
 Hatena_SectionNode = function() {};
 Hatena_SectionNode.prototype = Object.extend(new Hatena_Node(), {
     childNodes: ["h6", "h5", "h4", "blockquote", "dl", "list", "pre", "superpre", "table", "tagline", "tag",
-        "gimage", "alias", "more"],
+        "gimage", "alias", "more", "tex"],
 
     parse: function() {
         var _this = this;
@@ -597,7 +599,8 @@ Hatena_BlockquoteNode = function(){};
 Hatena_BlockquoteNode.prototype = Object.extend(new Hatena_SectionNode(), {
     pattern: /^>(?:(https?:\/\/.*?)(:.*)?)?>$/,
     endPattern: /^<<$/,
-    childNodes: ["h4", "h5", "h6", "blockquote", "dl", "list", "pre", "superpre", "table", "gimage", "alias"],
+    childNodes: ["h4", "h5", "h6", "blockquote", "dl", "list", "pre", "superpre", "table",
+        "gimage", "alias", "tex"],
 
     parse: function(match) {
         var _this = this;
@@ -636,7 +639,8 @@ Hatena_TagNode = function(){};
 Hatena_TagNode.prototype = Object.extend(new Hatena_SectionNode(), {
     pattern: /^>(<.*)$/,
     endPattern: /^(.*>)<$/,
-    childNodes: ["h4", "h5", "h6", "blockquote", "dl", "list", "pre", "superpre", "table", "gimage", "alias"],
+    childNodes: ["h4", "h5", "h6", "blockquote", "dl", "list", "pre", "superpre", "table",
+        "gimage", "alias", "tex"],
 
     parse: function(match) {
         var _this = this;
@@ -858,4 +862,32 @@ Hatena_MoreNode.prototype = Object.extend(new Hatena_SectionNode(), {
         c.putLineWithoutIndent("<!-- more -->");
         c.putLineWithoutIndent('<!--emPreview--><div class="previewOnly">&lt;!-- more --&gt;</div><!--/emPreview-->');
     }
+});
+
+
+Hatena_TexNode = function() {};
+Hatena_TexNode.replaceTexInLine = function(text) {
+    return text.replace(/\[tex:([^\]]+)\]/g, function(matchStr, tex) {
+        return Hatena_TexNode.getTag(tex, true);
+    });
+};
+Hatena_TexNode.getTag = function(tex, isInline) {
+    // just for safety (though it won't happen)
+    tex = tex.replace(/script/g, "scri pt");
+
+    if (isInline) {
+        return '<script type="math/tex">' + tex + '</script>';
+    }
+    return '<script type="math/tex; mode=display">' + tex + '</script>';
+};
+Hatena_TexNode.prototype = Object.extend(new Hatena_SectionNode(), {
+    pattern: /^\[tex:([^\]]+)\]\s*$/,
+
+    parse: function(match) {
+        var _this = this;
+        var c = _this.self.context;
+        c.next();
+
+        c.putLine(Hatena_TexNode.getTag(match[1], false));
+    },
 });

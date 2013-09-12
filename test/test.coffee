@@ -264,3 +264,32 @@ ahya
 ahya
 </pre>
 """
+
+        it 'should output MathJax script inline', ->
+            i = """
+A [tex:\\LaTeX] document.
+"""
+            # console.log(parse(i))
+            assert.equal parse(i), """
+<p>A <script type="math/tex">\\LaTeX</script> document.</p>
+"""
+
+        it 'should output MathJax script as a block', ->
+            i = """
+The following formula:
+[tex:3x^2]
+"""
+            # console.log(parse(i))
+            assert.equal parse(i), """
+<p>The following formula:</p>
+<script type="math/tex; mode=display">3x^2</script>
+"""
+
+        it 'should avoid XSS-like problem', ->
+            i = """
+[tex:</script>]
+"""
+            # console.log(parse(i))
+            assert.equal parse(i), """
+<script type="math/tex; mode=display"></scri pt></script>
+"""
