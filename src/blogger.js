@@ -496,6 +496,15 @@ var bloggerHatenaMarkup = function () {
                 };
 
                 var createCheckbox = function() {
+                    var createUsage = function() {
+                        var a = document.createElement("a");
+                        a.href = "http://extreme-markup.blogspot.jp/p/syntax-and-features.html";
+                        a.target = "_blank";
+                        a.textContent = "[Usage]";
+                        a.style = "margin-left: 10px";
+                        return a;
+                    };
+
                     emEditorCheckbox = document.createElement("input");
                     emEditorCheckbox.setAttribute("type", "checkbox");
                     emEditorCheckbox.setAttribute("id", "emEditorCheckbox");
@@ -511,6 +520,7 @@ var bloggerHatenaMarkup = function () {
                     ].join(''));
                     checkboxDiv.appendChild(emEditorCheckbox);
                     checkboxDiv.appendChild(label);
+                    checkboxDiv.appendChild(createUsage());
 
                     return checkboxDiv;
                 };
