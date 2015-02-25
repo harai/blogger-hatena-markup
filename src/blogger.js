@@ -25,7 +25,6 @@ var bloggerHatenaMarkup = function () {
         if (textarea.value.indexOf("\n") != 0) {
             textarea.value = "\n" + textarea.value;
         }
-        textarea.setSelectionRange(0, 0); // needed?
     };
 
     var getSelection = function(textarea) {
