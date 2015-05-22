@@ -1,0 +1,27 @@
+{
+  "name": "blogger-hatena-markup",
+  "version": "0.0.0",
+  "description": "For detailed information about this product, please visit [Extreme Markup Editor for Blogger™](http://extreme-markup.blogspot.jp/).",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "devDependencies": {
+    "coffee-script": "^1.9.2",
+    "mocha": "^2.2.5",
+    "chai": "^2.3.0",
+    "jsdom": "^3.1.2"
+  },
+  "scripts": {
+    "test": "mocha --compilers coffee:coffee-script/register --recursive"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/harai/blogger-hatena-markup.git"
+  },
+  "author": "Akihiro HARAI",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/harai/blogger-hatena-markup/issues"
+  }
+}
